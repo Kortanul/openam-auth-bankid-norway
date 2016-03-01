@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2016 ForgeRock AS. All Rights Reserved
+
+    The contents of this file are subject to the terms
+    of the Common Development and Distribution License
+    (the License). You may not use this file except in
+    compliance with the License.
+
+    You can obtain a copy of the License at
+    http://forgerock.org/license/CDDLv1.0.html
+    See the License for the specific language governing
+    permission and limitations under the License.
+
+    When distributing Covered Code, include this CDDL
+    Header Notice in each file and include the License file
+    at http://forgerock.org/license/CDDLv1.0.html
+    If applicable, add the following below the CDDL Header,
+    with the fields enclosed by brackets [] replaced by
+    your own identifying information:
+    "Portions Copyrighted [year] [name of copyright owner]"
+
+-->
+
+<!DOCTYPE ServicesConfiguration
+        PUBLIC "=//iPlanet//Service Management Services (SMS) 1.0 DTD//EN"
+        "jar://com/sun/identity/sm/sms.dtd">
+
+<ServicesConfiguration>
+    <Service name="iPlanetAMAuthBankIDNorwayService" version="1.0">
+        <Schema
+                serviceHierarchy="/DSAMEConfig/authentication/iPlanetAMAuthBankIDNorwayService"
+                i18nFileName="amBankIDNorway"
+                revisionNumber="10"
+                i18nKey="bankid-norway-description"
+                resourceName="bankidno">
+
+            <Organization>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-name"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a010">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-web-address"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a020">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-url"
+                                 type="single"
+                                 syntax="url"
+                                 i18nKey="a030">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-domain"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a040">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-ancestors"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a050">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a060">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore-pwd"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a070">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-granted-policies"
+                                 type="multiple_choice"
+                                 syntax="string"
+                                 i18nKey="a080">
+                    <ChoiceValues>
+                        <ChoiceValue i18nKey="a080-1">2.16.578.1.16.1.9.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080-2">2.16.578.1.16.1.11.2.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080-3">2.16.578.1.16.1.12.1.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080-4">2.16.578.1.16.1.13.1.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080-5">2.16.578.1.16.1.12.2.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080-6">ALL</ChoiceValue>
+                    </ChoiceValues>
+                    <DefaultValues>
+                        <Value>2.16.578.1.16.1.9.1</Value>
+                        <Value>2.16.578.1.16.1.11.2.1</Value>
+                        <Value>2.16.578.1.16.1.12.1.1</Value>
+                        <Value>2.16.578.1.16.1.13.1.1</Value>
+                        <Value>2.16.578.1.16.1.12.2.1</Value>
+                        <Value>ALL</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-cert-type"
+                                 type="list"
+                                 syntax="string"
+                                 i18nKey="a090">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-next-url"
+                                 type="list"
+                                 syntax="url"
+                                 i18nKey="a100">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-timeout"
+                                 type="single"
+                                 syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                 i18nKey="a110">
+                    <DefaultValues>
+                        <Value>0</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-with-credentials"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a120">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-client-session-timeout"
+                                 type="single"
+                                 syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                 i18nKey="a130">
+                    <DefaultValues>
+                        <Value>0</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-client-version"
+                                 type="single"
+                                 syntax="string"
+                                 i18nKey="a140">
+                    <DefaultValues>
+                        <Value></Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-auth-level"
+                                 type="single"
+                                 syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                 i18nKey="a900">
+                    <DefaultValues>
+                        <Value>0</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                <SubSchema name="serverconfig" inheritance="multiple" resourceName="USE-PARENT">
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-name"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a010">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-web-address"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a020">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-url"
+                                     type="single"
+                                     syntax="url"
+                                     i18nKey="a030">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-domain"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a040">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-ancestors"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a050">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a060">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore-pwd"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a070">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-granted-policies"
+                                     type="multiple_choice"
+                                     syntax="string"
+                                     i18nKey="a080">
+                        <ChoiceValues>
+                            <ChoiceValue i18nKey="a080-1">2.16.578.1.16.1.9.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080-2">2.16.578.1.16.1.11.2.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080-3">2.16.578.1.16.1.12.1.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080-4">2.16.578.1.16.1.13.1.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080-5">2.16.578.1.16.1.12.2.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080-6">ALL</ChoiceValue>
+                        </ChoiceValues>
+                        <DefaultValues>
+                            <Value>2.16.578.1.16.1.9.1</Value>
+                            <Value>2.16.578.1.16.1.11.2.1</Value>
+                            <Value>2.16.578.1.16.1.12.1.1</Value>
+                            <Value>2.16.578.1.16.1.13.1.1</Value>
+                            <Value>2.16.578.1.16.1.12.2.1</Value>
+                            <Value>ALL</Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-cert-type"
+                                     type="list"
+                                     syntax="string"
+                                     i18nKey="a090">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-next-url"
+                                     type="list"
+                                     syntax="url"
+                                     i18nKey="a100">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-timeout"
+                                     type="single"
+                                     syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                     i18nKey="a110">
+                        <DefaultValues>
+                            <Value>0</Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-with-credentials"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a120">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-client-session-timeout"
+                                     type="single"
+                                     syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                     i18nKey="a130">
+                        <DefaultValues>
+                            <Value>0</Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-client-version"
+                                     type="single"
+                                     syntax="string"
+                                     i18nKey="a140">
+                        <DefaultValues>
+                            <Value></Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-auth-level"
+                                     type="single"
+                                     syntax="number_range" rangeStart="0" rangeEnd="2147483647"
+                                     i18nKey="a900">
+                        <DefaultValues>
+                            <Value>0</Value>
+                        </DefaultValues>
+                    </AttributeSchema>
+                </SubSchema>
+            </Organization>
+        </Schema>
+    </Service>
+</ServicesConfiguration>
