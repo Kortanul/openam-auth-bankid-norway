@@ -88,7 +88,7 @@
                 </AttributeSchema>
                 <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore-pwd"
                                  type="single"
-                                 syntax="string"
+                                 syntax="password"
                                  i18nKey="a070">
                     <DefaultValues>
                         <Value></Value>
@@ -113,15 +113,6 @@
                         <Value>2.16.578.1.16.1.13.1.1</Value>
                         <Value>2.16.578.1.16.1.12.2.1</Value>
                         <Value>ALL</Value>
-                    </DefaultValues>
-                </AttributeSchema>
-
-                <AttributeSchema name="iplanet-am-auth-bankidnorway-cert-type"
-                                 type="list"
-                                 syntax="string"
-                                 i18nKey="a090">
-                    <DefaultValues>
-                        <Value></Value>
                     </DefaultValues>
                 </AttributeSchema>
                 <AttributeSchema name="iplanet-am-auth-bankidnorway-next-url"
@@ -156,14 +147,6 @@
                         <Value>0</Value>
                     </DefaultValues>
                 </AttributeSchema>
-                <AttributeSchema name="iplanet-am-auth-bankidnorway-client-version"
-                                 type="single"
-                                 syntax="string"
-                                 i18nKey="a140">
-                    <DefaultValues>
-                        <Value></Value>
-                    </DefaultValues>
-                </AttributeSchema>
                 <AttributeSchema name="iplanet-am-auth-bankidnorway-auth-level"
                                  type="single"
                                  syntax="number_range" rangeStart="0" rangeEnd="2147483647"
@@ -178,7 +161,7 @@
                                      syntax="string"
                                      i18nKey="a010">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>forgerock</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-web-address"
@@ -186,7 +169,7 @@
                                      syntax="string"
                                      i18nKey="a020">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>bankid-am.openrock.org,195.159.243.130</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-url"
@@ -194,7 +177,7 @@
                                      syntax="url"
                                      i18nKey="a030">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>https://bankid-am.openrock.org:8043/openam</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-domain"
@@ -202,7 +185,7 @@
                                      syntax="string"
                                      i18nKey="a040">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>https://bankid-am.openrock.org</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-fe-ancestors"
@@ -218,15 +201,15 @@
                                      syntax="string"
                                      i18nKey="a060">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>/opt/bankid/tomcat/conf/keystore.jks</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-keystore-pwd"
                                      type="single"
-                                     syntax="string"
+                                     syntax="password"
                                      i18nKey="a070">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>nT67pAqzq0XISllh</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-granted-policies"
@@ -242,21 +225,7 @@
                             <ChoiceValue i18nKey="a080-6">ALL</ChoiceValue>
                         </ChoiceValues>
                         <DefaultValues>
-                            <Value>2.16.578.1.16.1.9.1</Value>
-                            <Value>2.16.578.1.16.1.11.2.1</Value>
-                            <Value>2.16.578.1.16.1.12.1.1</Value>
-                            <Value>2.16.578.1.16.1.13.1.1</Value>
-                            <Value>2.16.578.1.16.1.12.2.1</Value>
                             <Value>ALL</Value>
-                        </DefaultValues>
-                    </AttributeSchema>
-
-                    <AttributeSchema name="iplanet-am-auth-bankidnorway-cert-type"
-                                     type="list"
-                                     syntax="string"
-                                     i18nKey="a090">
-                        <DefaultValues>
-                            <Value></Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-next-url"
@@ -272,7 +241,7 @@
                                      syntax="number_range" rangeStart="0" rangeEnd="2147483647"
                                      i18nKey="a110">
                         <DefaultValues>
-                            <Value>0</Value>
+                            <Value>40000</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-with-credentials"
@@ -280,7 +249,7 @@
                                      syntax="string"
                                      i18nKey="a120">
                         <DefaultValues>
-                            <Value></Value>
+                            <Value>N</Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-client-session-timeout"
@@ -289,14 +258,6 @@
                                      i18nKey="a130">
                         <DefaultValues>
                             <Value>0</Value>
-                        </DefaultValues>
-                    </AttributeSchema>
-                    <AttributeSchema name="iplanet-am-auth-bankidnorway-client-version"
-                                     type="single"
-                                     syntax="string"
-                                     i18nKey="a140">
-                        <DefaultValues>
-                            <Value></Value>
                         </DefaultValues>
                     </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-auth-level"

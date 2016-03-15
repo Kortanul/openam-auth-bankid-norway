@@ -1,0 +1,51 @@
+<div class="container">
+    <script type="application/javascript">
+        helperURL = $('input#helperURL').val()
+        function initiateClient(helperData) {
+            console.log("Client initialization started with helperURL: ", helperData.helperURL, ", cid: ", helperData.cid);
+            $.getScript(helperData.helperURL)
+                    .done(function( script, textStatus ) {
+                        bankidhelper.init({
+                            frameMode: 'iframe',
+                            cid: helperData.cid,
+                            containerID: 'bid_client',
+                            width: '100%',
+                            height: '100%',
+                            callback: function(x) {callback_function(x);}
+                        });
+                    });
+
+            function callback_function(jsonResponse) {
+                console.log("callback to merchant received!");
+                console.log(JSON.stringify(jsonResponse));
+            }
+
+        }
+
+    </script>
+
+    {{#if reqs.header}}
+        <div class="page-header">
+            <h1 class="text-center">{{reqs.header}}</h1>
+        </div>
+    {{/if}}
+
+    <div id="bid_client">
+    </div>
+
+    <form action="" method="post" class="form login col-sm-6 col-sm-offset-3" data-stage="{{reqs.stage}}">
+        <fieldset class="row">
+            {{#each reqs.callbacks}}
+                {{#if isSubmit}}
+                    {{#if ../../showRememberLogin}}
+                        {{> login/_RememberLogin }}
+                    {{/if}}
+                {{/if}}
+
+                <div class="form-group">
+                    {{callbackRender}}
+                </div>
+            {{/each}}
+        </fieldset>
+    </form>
+</div>

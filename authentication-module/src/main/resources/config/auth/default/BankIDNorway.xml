@@ -26,13 +26,15 @@
 
 <ModuleProperties moduleName="BankIDNorway" version="1.0" >
     <Callbacks length="0" order="1" timeout="600" header="#NOT SHOWN#" />
+
     <Callbacks length="2" order="2" timeout="600" header="#TO BE SUBSTITUTED#">
-        <NameCallback isRequired="true">
-            <Prompt>#USERNAME#</Prompt>
-        </NameCallback>
-        <PasswordCallback echoPassword="false" >
-            <Prompt>#PASSWORD#</Prompt>
-        </PasswordCallback>
+        <HiddenValueCallback>
+            <Id>result</Id>
+        </HiddenValueCallback>
+        <TextOutputCallback messageType="script">
+
+        </TextOutputCallback>
+
     </Callbacks>
     <Callbacks length="1" order="3" timeout="600" header="#TO BE SUBSTITUTED#"
                error="true" >
