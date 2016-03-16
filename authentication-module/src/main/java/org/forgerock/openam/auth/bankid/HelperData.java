@@ -46,6 +46,9 @@ public class HelperData {
     @JsonProperty("marchant")
     private String marchantName;
 
+    @JsonProperty("readSSN")
+    private boolean readSSN;
+
     @JsonIgnore
     private BIDSessionData sessaionData;
 
@@ -114,5 +117,13 @@ public class HelperData {
 
     public void setSessaionData(BIDSessionData sessaionData) {
         this.sessaionData = sessaionData;
+    }
+
+    public boolean isReadSSN() {
+        return readSSN;
+    }
+
+    public void setReadSSN(boolean readSSN) {
+        this.readSSN = readSSN;
     }
 }

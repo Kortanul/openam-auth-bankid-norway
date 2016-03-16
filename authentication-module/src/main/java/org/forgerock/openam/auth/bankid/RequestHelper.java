@@ -48,6 +48,8 @@ public class RequestHelper {
     private String traceId;
     @JsonProperty
     private String marchantName;
+    @JsonProperty
+    private boolean readSSN;
 
     public static RequestHelper getHelper(HttpServletRequest request, PeriodicCleanUpMap cache) {
         RequestHelper reqHelper = new RequestHelper();
@@ -60,6 +62,7 @@ public class RequestHelper {
             HelperData helperData = (HelperData)cache.get(reqHelper.getSid());
             reqHelper.traceId = helperData.getTraceId();
             reqHelper.marchantName = helperData.getMarchantName();
+            reqHelper.readSSN = helperData.isReadSSN();
         }
         return reqHelper;
     }
@@ -112,4 +115,7 @@ public class RequestHelper {
         return marchantName;
     }
 
+    public boolean isReadSSN() {
+        return readSSN;
+    }
 }

@@ -1,9 +1,10 @@
 package org.forgerock.openam.auth.bankid;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.sun.identity.authentication.callbacks.HiddenValueCallback;
 import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.common.PeriodicCleanUpMap;
@@ -21,7 +22,6 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.PrintWriter;
 import java.security.Principal;
 import java.util.*;
@@ -49,6 +49,7 @@ import java.util.*;
  *
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class BankIDNorway extends AMLoginModule {
     private static final Debug debug = Debug.getInstance("BankIDNorway");
     private ResourceBundle bundle;
@@ -83,6 +84,9 @@ public class BankIDNorway extends AMLoginModule {
 
     @JsonProperty("marchantGrantedPolicies")
     private String marchantGrantedPolicies;
+
+    @JsonProperty("retrieveSSN")
+    private boolean retrieveSSN;
 
     @JsonProperty("nextURL")
     private String nextURL;
@@ -122,6 +126,7 @@ public class BankIDNorway extends AMLoginModule {
         } else {
             marchantGrantedPolicies = StringUtils.join(policies, ",");
         }
+        retrieveSSN = CollectionHelper.getBooleanMapAttr(options, "iplanet-am-auth-bankidnorway-read-ssn", false);
         nextURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-next-url");
         timeout = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-timeout");
         withCredentials = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-with-credentials");
@@ -177,6 +182,8 @@ public class BankIDNorway extends AMLoginModule {
 
             HelperData helperData = new HelperData(helperURI, clientID, sessionId, traceId);
             helperData.setMarchantName(marchantName);
+            helperData.setReadSSN(retrieveSSN);
+            
             if (debug.messageEnabled()) {
                 debug.message("Helper data: " + helperData.toString());
             }
@@ -267,9 +274,11 @@ public class BankIDNorway extends AMLoginModule {
         BIDFactory factory = BIDFactory.getInstance();
 
         try {
-            ArrayList<String> additionalInfos = new ArrayList<String>();
-            additionalInfos.add(JServerConstants.LABEL_OID_OCSP_SSN);
-            sessionData.setAdditionalInfoList(additionalInfos);
+            if (helper.isReadSSN()) {
+                ArrayList<String> additionalInfos = new ArrayList<String>();
+                additionalInfos.add(JServerConstants.LABEL_OID_OCSP_SSN);
+                sessionData.setAdditionalInfoList(additionalInfos);
+            }
 
             BIDFacade bankIDFacade = factory.getFacade(helper.getMarchantName());
             bankIDFacade.verifyTransactionRequest(
@@ -329,16 +338,17 @@ public class BankIDNorway extends AMLoginModule {
     }
 
     public String toString() {
-//        try {
-//            return new ObjectMapper()
-//                    .writer()
-//                    .writeValueAsString(this);
-//        } catch (Exception ex) {
-//            if (debug.errorEnabled()) {
-//                debug.error("Error converting to JSON", ex);
-//            }
+        try {
+            return new ObjectMapper()
+                    .writer()
+                    .without(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                    .writeValueAsString(this);
+        } catch (Exception ex) {
+            if (debug.errorEnabled()) {
+                debug.error("Error converting to JSON", ex);
+            }
             return "{}";
-//        }
+        }
     }
 
 }
