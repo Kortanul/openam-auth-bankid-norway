@@ -157,7 +157,9 @@ public class BankIDNorway extends AMLoginModule {
             initSessionInfo.setClientVersion(CLIENT_VERSION);
             initSessionInfo.setMerchantURL(config.marchantURL);
 
-            initSessionInfo.setLocaleId("en");
+            String lang = getLoginLocale().getLanguage();
+            lang = lang.equals("no") || lang.equals("nb") || lang.equals("nn") ? "nb" : "en";
+            initSessionInfo.setLocaleId(lang);
             initSessionInfo.setSid(sessionId);
             initSessionInfo.setSuppressBroadcast("N");
             initSessionInfo.setCertType(config.marchantGrantedPolicies);
