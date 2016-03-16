@@ -286,25 +286,13 @@ public class BankIDNorway extends AMLoginModule {
                 debug.message("User's SSN: " + certStatus.getAddInfoSSN());
             }
 
-//            List<String> oidList = new ArrayList<String>();
-//            oidList.add("2.16.578.1.16.6.2");
-//            try {
-//                Map<String, String> transInfo = bankIDFacade.getTransactionInfo(helper.getTraceId(), oidList, 30000);
-//                for (String key : transInfo.keySet()) {
-//                    debug.message(key + " - " + transInfo.get(key));
-//                }
-//            } catch (BIDException e) {
-//                debug.("Data til brukersted error: " + e.getMessage());
-//            }
-
-            // A usage for the client signature is to obtain information
-            // about the certificate of the client, e.g. the name:
             CertificateInfo certInfo = bankIDFacade.getCertificateInfo(bankIDFacade
                     .getPKCS7Info(sessionData.getClientSignature())
                     .getSignerCertificate());
 
             if (debug.messageEnabled()) {
                 debug.message("User's UID: " + certInfo.getUniqueId());
+                debug.message("User's common name: " + certInfo.getCommonName());
             }
 
 
