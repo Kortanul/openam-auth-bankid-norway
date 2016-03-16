@@ -24,12 +24,6 @@
 
     </script>
 
-    {{#if reqs.header}}
-        <div class="page-header">
-            <h1 class="text-center">{{reqs.header}}</h1>
-        </div>
-    {{/if}}
-
     <div id="bid_client">
     </div>
 
@@ -48,4 +42,7 @@
             {{/each}}
         </fieldset>
     </form>
+    <script type="application/javascript">
+        $("form input:submit").attr("class", "hidden");
+    </script>
 </div>
