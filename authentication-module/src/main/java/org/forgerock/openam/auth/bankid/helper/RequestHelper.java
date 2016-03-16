@@ -1,10 +1,9 @@
-package org.forgerock.openam.auth.bankid;
+package org.forgerock.openam.auth.bankid.helper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.identity.common.PeriodicCleanUpMap;
-import no.bbs.server.vos.BIDSessionData;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -59,10 +58,10 @@ public class RequestHelper {
         reqHelper.encData = request.getParameter("encData");
         reqHelper.encAuth = request.getParameter("encAuth");
         if (cache.containsKey(reqHelper.getSid())) {
-            HelperData helperData = (HelperData)cache.get(reqHelper.getSid());
-            reqHelper.traceId = helperData.getTraceId();
-            reqHelper.marchantName = helperData.getMarchantName();
-            reqHelper.readSSN = helperData.isReadSSN();
+            DataHelper dataHelper = (DataHelper)cache.get(reqHelper.getSid());
+            reqHelper.traceId = dataHelper.getTraceId();
+            reqHelper.marchantName = dataHelper.getMarchantName();
+            reqHelper.readSSN = dataHelper.isReadSSN();
         }
         return reqHelper;
     }

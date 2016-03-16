@@ -1,4 +1,4 @@
-package org.forgerock.openam.auth.bankid;
+package org.forgerock.openam.auth.bankid.helper;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

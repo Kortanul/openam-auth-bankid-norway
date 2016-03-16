@@ -1,9 +1,8 @@
-package org.forgerock.openam.auth.bankid;
+package org.forgerock.openam.auth.bankid.helper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import no.bbs.server.vos.BIDSessionData;
 
 /**
@@ -29,8 +28,7 @@ import no.bbs.server.vos.BIDSessionData;
  *
  */
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-public class HelperData {
+public class DataHelper {
     @JsonProperty("helperURL")
     private String helperURL;
 
@@ -52,14 +50,14 @@ public class HelperData {
     @JsonIgnore
     private BIDSessionData sessaionData;
 
-    public HelperData(String helperURL, String clientId, String sessionId, String traceId) {
+    public DataHelper(String helperURL, String clientId, String sessionId, String traceId) {
         this.helperURL = helperURL;
         this.clientId = clientId;
         this.sessionId = sessionId;
         this.traceId = traceId;
     }
 
-    public HelperData(String helperURL, String clientId) {
+    public DataHelper(String helperURL, String clientId) {
         this(helperURL, clientId, null, null);
     }
 

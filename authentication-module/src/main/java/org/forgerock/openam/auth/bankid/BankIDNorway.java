@@ -1,11 +1,5 @@
 package org.forgerock.openam.auth.bankid;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.util.ISAuthConstants;
@@ -20,6 +14,9 @@ import no.bbs.server.implementation.BIDFactory;
 import no.bbs.server.vos.*;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
+import org.forgerock.openam.auth.bankid.helper.DataHelper;
+import org.forgerock.openam.auth.bankid.helper.RequestHelper;
+import org.forgerock.openam.auth.bankid.helper.ResponseHelper;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -52,8 +49,6 @@ import java.util.*;
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown=true)
 public class BankIDNorway extends AMLoginModule {
     private static final Debug debug = Debug.getInstance("BankIDNorway");
     private ResourceBundle bundle;
@@ -65,51 +60,8 @@ public class BankIDNorway extends AMLoginModule {
     private static final int STATE_AUTH = 2;
     private static final int STATE_ERROR = 3;
 
-
-    //configuration
-    @JsonProperty("marchantName")
-    private String marchantName;
-
-    @JsonProperty("marchantWebAddress")
-    private String marchantWebAddress;
-
-    @JsonProperty("marchantURL")
-    private String marchantURL;
-
-    @JsonProperty("marchantFeDomain")
-    private String marchantFeDomain;
-
-    @JsonProperty("marchantFeAncestors")
-    private String marchantFeAncestors;
-
-    @JsonProperty("marchantKeystore")
-    private String marchantKeystore;
-
-    private String marchantKeystorePassword;
-
-    @JsonProperty("marchantGrantedPolicies")
-    private String marchantGrantedPolicies;
-
-    @JsonProperty("retrieveSSN")
-    private boolean retrieveSSN;
-
-    @JsonProperty("propsMappings")
-    private Map<String, String>  propsMappings;
-
-    @JsonProperty("nextURL")
-    private String nextURL;
-
-    @JsonProperty("timeout")
-    private String timeout;
-
-    @JsonProperty("withCredentials")
-    private String withCredentials;
-
-    @JsonProperty("sessionTimeout")
-    private String sessionTimeout;
-
-    @JsonIgnore
-    private HelperData helperData;
+    private BankIDConfiguration config;
+    private DataHelper dataHelper;
 
     private final static String CLIENT_VERSION = "2.1";
 
@@ -124,48 +76,49 @@ public class BankIDNorway extends AMLoginModule {
             debug.message("BankID Norway::init");
         }
 //        bundle = amCache.getResBundle("BankIDNorway", getLoginLocale());
-        marchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-name");
-        marchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-web-address");
-        marchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-url");
-        marchantFeDomain = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-domain");
-        marchantFeAncestors = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-ancestors");
-        marchantKeystore = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore");
-        marchantKeystorePassword = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore-pwd");
+        config = new BankIDConfiguration();
+        config.marchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-name");
+        config.marchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-web-address");
+        config.marchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-url");
+        config.marchantFeDomain = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-domain");
+        config.marchantFeAncestors = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-ancestors");
+        config.marchantKeystore = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore");
+        config.marchantKeystorePassword = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore-pwd");
         try {
             Set<String> policies = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-marchant-granted-policies");
 
             if (policies.contains("ALL")) {
-                marchantGrantedPolicies = "ALL";
+                config.marchantGrantedPolicies = "ALL";
             } else {
-                marchantGrantedPolicies = StringUtils.join(policies, ",");
+                config.marchantGrantedPolicies = StringUtils.join(policies, ",");
             }
         } catch (ValueNotFoundException e) {
-            marchantGrantedPolicies = "ALL";
+            config.marchantGrantedPolicies = "ALL";
         }
 
-        retrieveSSN = CollectionHelper.getBooleanMapAttr(options, "iplanet-am-auth-bankidnorway-read-ssn", false);
+        config.retrieveSSN = CollectionHelper.getBooleanMapAttr(options, "iplanet-am-auth-bankidnorway-read-ssn", false);
 
-        propsMappings = new HashMap<String, String>();
+        config.propsMappings = new HashMap<String, String>();
         try {
             Set<String> mappings = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-marchant-mapping-list");
             for (String mapping : mappings) {
                 String split[] = mapping.split("=", 2);
-                propsMappings.put(split[0], split[1]);
+                config.propsMappings.put(split[0], split[1]);
             }
         } catch (Exception e) {
             if (debug.errorEnabled()) {
                 debug.error("Can't process mappings", e);
             }
-            propsMappings.put(retrieveSSN ? "ssn" : "uid", "uid");
+            config.propsMappings.put(config.retrieveSSN ? "ssn" : "uid", "uid");
 
         }
-        nextURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-next-url");
-        timeout = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-timeout");
-        withCredentials = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-with-credentials");
-        sessionTimeout = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-session-timeout");
+        config.nextURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-next-url");
+        config.timeout = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-timeout");
+        config.withCredentials = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-with-credentials");
+        config.sessionTimeout = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-session-timeout");
 
         if (debug.messageEnabled()) {
-            debug.message("Configuration: " + toString());
+            debug.message("Configuration: " + config.toString());
         }
 
     }
@@ -182,28 +135,28 @@ public class BankIDNorway extends AMLoginModule {
             /*
              * read below values from auth module config
              */
-            mConfig.setGrantedPolicies(marchantGrantedPolicies);
-            mConfig.setKeystorePassword(marchantKeystorePassword);
-            mConfig.setMerchantKeystore(marchantKeystore);
-            mConfig.setMerchantName(marchantName);
-            mConfig.setWebAddresses(marchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
+            mConfig.setGrantedPolicies(config.marchantGrantedPolicies);
+            mConfig.setKeystorePassword(config.marchantKeystorePassword);
+            mConfig.setMerchantKeystore(config.marchantKeystore);
+            mConfig.setMerchantName(config.marchantName);
+            mConfig.setWebAddresses(config.marchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
             factory.registerBankIDContext(mConfig);
 
-            BIDFacade bankIDFacade = factory.getFacade(marchantName);
+            BIDFacade bankIDFacade = factory.getFacade(config.marchantName);
 
 
             InitSessionInfo initSessionInfo = new InitSessionInfo();
             initSessionInfo.setAction("auth");
             initSessionInfo.setUserAgent(request.getHeader("user-agent"));
             initSessionInfo.setClientVersion(CLIENT_VERSION);
-            initSessionInfo.setMerchantURL(marchantURL);
+            initSessionInfo.setMerchantURL(config.marchantURL);
 
             initSessionInfo.setLocaleId("en");
             initSessionInfo.setSid(sessionId);
             initSessionInfo.setSuppressBroadcast("N");
-            initSessionInfo.setCertType(marchantGrantedPolicies);
-            initSessionInfo.setTimeout(timeout);
-            initSessionInfo.setMerchantFEDomain(marchantFeDomain);
+            initSessionInfo.setCertType(config.marchantGrantedPolicies);
+            initSessionInfo.setTimeout(config.timeout);
+            initSessionInfo.setMerchantFEDomain(config.marchantFeDomain);
 
             initSessionInfo = bankIDFacade.initSession(initSessionInfo);
 
@@ -212,19 +165,19 @@ public class BankIDNorway extends AMLoginModule {
             String helperURI = initSessionInfo.getHelperURI();
             traceId = initSessionInfo.getTraceID();
 
-            helperData = new HelperData(helperURI, clientID, sessionId, traceId);
-            helperData.setMarchantName(marchantName);
-            helperData.setReadSSN(retrieveSSN);
+            dataHelper = new DataHelper(helperURI, clientID, sessionId, traceId);
+            dataHelper.setMarchantName(config.marchantName);
+            dataHelper.setReadSSN(config.retrieveSSN);
 
             if (debug.messageEnabled()) {
-                debug.message("Helper data: " + helperData.toString());
+                debug.message("Helper data: " + dataHelper.toString());
             }
-            requestCache.put(sessionId, helperData);
+            requestCache.put(sessionId, dataHelper);
 
             StringBuffer js = new StringBuffer();
-            js.append("var helperData = ")
-                    .append(helperData.toString()).append(System.lineSeparator())
-                    .append("initiateClient(helperData);");
+            js.append("var dataHelper = ")
+                    .append(dataHelper.toString()).append(System.lineSeparator())
+                    .append("initiateClient(dataHelper);");
 
             ScriptTextOutputCallback stoc = new ScriptTextOutputCallback(js.toString());
             replaceCallback(STATE_AUTH, 1, stoc);
@@ -234,6 +187,35 @@ public class BankIDNorway extends AMLoginModule {
             debug.error("initSession()", be);
             requestCache.remove(sessionId);
         }
+    }
+
+    private Map createUserAttribtues(final ResponseHelper responseHelper) {
+        Map attrs = new HashedMap();
+
+        if (config.propsMappings.containsKey("SSN") && responseHelper.getSsn() != null) {
+            attrs.put(config.propsMappings.get("SSN"), new HashSet<String>() {{
+                add(responseHelper.getSsn());
+            }});
+        }
+        if (config.propsMappings.containsKey("UID") && responseHelper.getUid() != null) {
+            attrs.put(config.propsMappings.get("UID"), new HashSet<String>() {{
+                add(responseHelper.getUid());
+            }});
+        }
+        if (config.propsMappings.containsKey("CN") && responseHelper.getCn() != null) {
+            attrs.put(config.propsMappings.get("CN"), new HashSet<String>() {{
+                add(responseHelper.getCn());
+            }});
+        }
+
+        //static mapping
+        if (responseHelper.getSn() != null) {
+            attrs.put("sn", new HashSet<String>() {{
+                add(responseHelper.getSn());
+            }});
+        }
+
+        return attrs;
     }
 
     @Override
@@ -247,40 +229,12 @@ public class BankIDNorway extends AMLoginModule {
                 return STATE_AUTH;
             }
             case STATE_AUTH: {
-                if (responseCache.containsKey(helperData.getSessionId())) {
-                    final ResponseHelper responseHelper = (ResponseHelper)responseCache.get(helperData.getSessionId());
-
-                    Map attrs = new HashedMap();
-
-
-
-
-                    if (propsMappings.containsKey("SSN") && responseHelper.getSsn() != null) {
-                        attrs.put(propsMappings.get("SSN"), new HashSet<String>() {{
-                            add(responseHelper.getSsn());
-                        }});
-                    }
-                    if (propsMappings.containsKey("UID") && responseHelper.getUid() != null) {
-                        attrs.put(propsMappings.get("UID"), new HashSet<String>() {{
-                            add(responseHelper.getUid());
-                        }});
-                    }
-                    if (propsMappings.containsKey("CN") && responseHelper.getCn() != null) {
-                        attrs.put(propsMappings.get("CN"), new HashSet<String>() {{
-                            add(responseHelper.getCn());
-                        }});
-                    }
-
-                    //static mapping
-                    if (responseHelper.getSn() != null) {
-                        attrs.put("sn", new HashSet<String>() {{
-                            add(responseHelper.getSn());
-                        }});
-                    }
-
+                if (responseCache.containsKey(dataHelper.getSessionId())) {
+                    ResponseHelper responseHelper = (ResponseHelper)responseCache.get(dataHelper.getSessionId());
+                    Map attrs = createUserAttribtues(responseHelper);
                     setUserAttributes(attrs);
 
-                    userName = (retrieveSSN && responseHelper.getSsn() != null)
+                    userName = (config.retrieveSSN && responseHelper.getSsn() != null)
                             ? responseHelper.getSsn()
                             : responseHelper.getUid();
                 }
@@ -304,8 +258,8 @@ public class BankIDNorway extends AMLoginModule {
 
     private static void initAuthentication(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
         BIDSessionData sessionData = new BIDSessionData(helper.getTraceId());
-        HelperData helperData = (HelperData)requestCache.get(helper.getSid());
-        helperData.setSessaionData(sessionData);
+        DataHelper dataHelper = (DataHelper)requestCache.get(helper.getSid());
+        dataHelper.setSessaionData(sessionData);
 
         BIDFactory factory = BIDFactory.getInstance();
 
@@ -335,8 +289,8 @@ public class BankIDNorway extends AMLoginModule {
     }
 
     private static void verifyAuthentication(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
-        HelperData helperData = (HelperData)requestCache.remove(helper.getSid());
-        BIDSessionData sessionData = helperData.getSessaionData();
+        DataHelper dataHelper = (DataHelper)requestCache.remove(helper.getSid());
+        BIDSessionData sessionData = dataHelper.getSessaionData();
         BIDFactory factory = BIDFactory.getInstance();
 
         try {
@@ -402,19 +356,4 @@ public class BankIDNorway extends AMLoginModule {
             verifyAuthentication(reqHelper, response, out);
         }
     }
-
-    public String toString() {
-        try {
-            return new ObjectMapper()
-                    .writer()
-                    .without(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                    .writeValueAsString(this);
-        } catch (Exception ex) {
-            if (debug.errorEnabled()) {
-                debug.error("Error converting to JSON", ex);
-            }
-            return "{}";
-        }
-    }
-
 }

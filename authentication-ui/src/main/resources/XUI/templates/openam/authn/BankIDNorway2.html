@@ -1,13 +1,13 @@
 <div class="container">
     <script type="application/javascript">
         helperURL = $('input#helperURL').val()
-        function initiateClient(helperData) {
-            console.log("Client initialization started with helperURL: ", helperData.helperURL, ", cid: ", helperData.cid);
-            $.getScript(helperData.helperURL)
+        function initiateClient(dataHelper) {
+            console.log("Client initialization started with helperURL: ", dataHelper.helperURL, ", cid: ", dataHelper.cid);
+            $.getScript(dataHelper.helperURL)
                     .done(function (script, textStatus) {
                         bankidhelper.init({
                             frameMode: 'iframe',
-                            cid: helperData.cid,
+                            cid: dataHelper.cid,
                             containerID: 'bid_client',
                             width: '100%',
                             height: '100%',
