@@ -20,6 +20,8 @@ import org.forgerock.openam.auth.bankid.helper.ResponseHelper;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.ConfirmationCallback;
+import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -75,7 +77,7 @@ public class BankIDNorway extends AMLoginModule {
         if (debug.messageEnabled()) {
             debug.message("BankID Norway::init");
         }
-//        bundle = amCache.getResBundle("BankIDNorway", getLoginLocale());
+        bundle = amCache.getResBundle("amBankIDNorway", getLoginLocale());
         config = new BankIDConfiguration();
         config.marchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-name");
         config.marchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-web-address");
@@ -174,14 +176,7 @@ public class BankIDNorway extends AMLoginModule {
             }
             requestCache.put(sessionId, dataHelper);
 
-            StringBuffer js = new StringBuffer();
-            js.append("var dataHelper = ")
-                    .append(dataHelper.toString()).append(System.lineSeparator())
-                    .append("initiateClient(dataHelper);");
-
-            ScriptTextOutputCallback stoc = new ScriptTextOutputCallback(js.toString());
-            replaceCallback(STATE_AUTH, 1, stoc);
-
+            customizeCallbacks(STATE_AUTH);
         } catch(BIDException be) {
             // Handle Error Situation
             debug.error("initSession()", be);
@@ -218,19 +213,68 @@ public class BankIDNorway extends AMLoginModule {
         return attrs;
     }
 
+    private void customizeCallbacks(int state) throws LoginException {
+        switch (state) {
+            case STATE_AUTH: {
+                StringBuffer js = new StringBuffer();
+                js.append("var dataHelper = ")
+                        .append(dataHelper.toString()).append(System.lineSeparator())
+                        .append("initiateClient(dataHelper);");
+
+                ScriptTextOutputCallback stoc = new ScriptTextOutputCallback(js.toString());
+                replaceCallback(STATE_AUTH, 1, stoc);
+                break;
+            }
+            case STATE_ERROR: {
+                ResponseHelper responseHelper = (ResponseHelper)responseCache.get(dataHelper.getSessionId());
+
+                substituteHeader(STATE_ERROR, bundle.getString("msg.authFailed"));
+                String errorCode = responseHelper.getErrorCode();
+
+                String userMsg = bundle.containsKey(errorCode)
+                        ? bundle.getString(errorCode)
+                        : bundle.getString("msg.genericError") + errorCode;
+                TextOutputCallback toc = new TextOutputCallback(TextOutputCallback.ERROR, userMsg);
+                replaceCallback(STATE_ERROR, 0, toc);
+
+                ConfirmationCallback cc = new ConfirmationCallback(ConfirmationCallback.INFORMATION,
+                        new String [] {bundle.getString("msg.tryAgain"), bundle.getString("msg.cancel")}, 0);
+                replaceCallback(STATE_ERROR, 1, cc);
+                break;
+            }
+        }
+
+    }
+
+    private void cleanup() {
+        responseCache.remove(dataHelper.getSessionId());
+        requestCache.remove(dataHelper.getSessionId());
+        dataHelper = null;
+        userName = null;
+    }
+
     @Override
     public int process(Callback[] callbacks, int state) throws LoginException {
-        if (debug.messageEnabled()) {
-            debug.message("BankID Norway::process, state is " + state);
-        }
         switch (state) {
             case STATE_SESSION: {
+                if (debug.messageEnabled()) {
+                    debug.message("BankIDNorway::processing STATE_SESSION...");
+                }
                 initSession();
                 return STATE_AUTH;
             }
             case STATE_AUTH: {
+                if (debug.messageEnabled()) {
+                    debug.message("BankIDNorway::processing STATE_AUTH...");
+                }
                 if (responseCache.containsKey(dataHelper.getSessionId())) {
                     ResponseHelper responseHelper = (ResponseHelper)responseCache.get(dataHelper.getSessionId());
+
+                    if (responseHelper.isError()) {
+                        customizeCallbacks(STATE_ERROR);
+                       return STATE_ERROR;
+                    }
+
                     Map attrs = createUserAttribtues(responseHelper);
                     setUserAttributes(attrs);
 
@@ -241,8 +285,17 @@ public class BankIDNorway extends AMLoginModule {
                 return ISAuthConstants.LOGIN_SUCCEED;
             }
             case STATE_ERROR: {
+                if (debug.messageEnabled()) {
+                    debug.message("BankIDNorway::processing STATE_ERROR...");
+                }
+                cleanup();
 
-                break;
+                int action = ((ConfirmationCallback)callbacks[1]).getSelectedIndex();
+                if (action == 0) {
+                    return STATE_SESSION;
+                } else {
+                    return ISAuthConstants.LOGIN_IGNORE;
+                }
             }
             default: {
 
@@ -345,6 +398,43 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
+    private static void handleError(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
+        DataHelper dataHelper = (DataHelper)requestCache.remove(helper.getSid());
+        BIDSessionData sessionData = dataHelper.getSessaionData();
+        BIDFactory factory = BIDFactory.getInstance();
+
+        try {
+            BIDFacade bankIDFacade = factory.getFacade(helper.getMarchantName());
+            bankIDFacade.verifyTransactionRequest(
+                    helper.getOperation(),
+                    helper.getEncKey(),
+                    helper.getEncData(),
+                    helper.getEncAuth(),
+                    helper.getSid(),
+                    sessionData);
+            String errorCode = sessionData.getErrCode();
+            ResponseHelper responseHelper = new ResponseHelper(errorCode);
+
+            responseCache.put(helper.getSid(), responseHelper);
+
+            if (debug.messageEnabled()) {
+                debug.message("User information: " + responseHelper.toString());
+            }
+
+
+            String responseToClient = bankIDFacade.verifyTransactionResponse(sessionData);
+            out.println(responseToClient);
+
+        } catch (BIDException be) {
+
+            //TODO: what should we do here
+            if (debug.errorEnabled()) {
+                debug.error("can't handle error", be);
+            }
+        }
+
+    }
+
     public static void processRequest(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
         RequestHelper reqHelper = RequestHelper.getHelper(request, requestCache);
         if (debug.messageEnabled()) {
@@ -354,6 +444,8 @@ public class BankIDNorway extends AMLoginModule {
             initAuthentication(reqHelper, response, out);
         } else if (reqHelper.isVerifyRequest()) {
             verifyAuthentication(reqHelper, response, out);
+        } else if (reqHelper.isError()) {
+            handleError(reqHelper, response, out);
         }
     }
 }

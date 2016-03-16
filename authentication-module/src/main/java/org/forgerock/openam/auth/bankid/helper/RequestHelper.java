@@ -76,6 +76,11 @@ public class RequestHelper {
         return operation.equals("verifyAuth");
     }
 
+    @JsonIgnore
+    public boolean isError() {
+        return operation.equals("handleError");
+    }
+
     public String toString() {
         try {
             return new ObjectMapper()

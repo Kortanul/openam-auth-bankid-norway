@@ -34,6 +34,8 @@ public class ResponseHelper {
     private String cn;
     @JsonProperty
     private String sn;
+    @JsonProperty
+    private String errorCode;
 
     public ResponseHelper(String ssn, String uid, String cn) {
         this.ssn = ssn;
@@ -43,10 +45,15 @@ public class ResponseHelper {
         if (split.length == 2) {
             this.sn = split[0];
         }
+        this.errorCode = null;
     }
 
     public ResponseHelper(String uid, String cn) {
         this(null, uid, cn);
+    }
+
+    public ResponseHelper(String errorCode) {
+        this.errorCode = errorCode;
     }
 
     public String toString() {
@@ -57,6 +64,10 @@ public class ResponseHelper {
         } catch (Exception ex) {
             return "{}";
         }
+    }
+
+    public boolean isError() {
+        return errorCode != null;
     }
 
     public String getSsn() {
@@ -73,5 +84,9 @@ public class ResponseHelper {
 
     public String getSn() {
         return sn;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
     }
 }
