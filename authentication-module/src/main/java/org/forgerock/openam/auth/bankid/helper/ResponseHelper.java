@@ -1,8 +1,3 @@
-package org.forgerock.openam.auth.bankid.helper;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -25,6 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  */
+
+package org.forgerock.openam.auth.bankid.helper;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class ResponseHelper {
     @JsonProperty
     private String ssn;

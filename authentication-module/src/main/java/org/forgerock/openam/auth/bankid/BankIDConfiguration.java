@@ -1,13 +1,3 @@
-package org.forgerock.openam.auth.bankid;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import java.util.Map;
-
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -30,6 +20,14 @@ import java.util.Map;
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  */
+
+package org.forgerock.openam.auth.bankid;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Map;
 
 public class BankIDConfiguration {
     //configuration

@@ -1,12 +1,3 @@
-package org.forgerock.openam.auth.bankid.helper;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.identity.common.PeriodicCleanUpMap;
-
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -30,6 +21,14 @@ import javax.servlet.http.HttpServletRequest;
  *
  */
 
+package org.forgerock.openam.auth.bankid.helper;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.identity.common.PeriodicCleanUpMap;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class RequestHelper {
     @JsonProperty

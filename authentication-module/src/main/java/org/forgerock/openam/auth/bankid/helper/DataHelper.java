@@ -1,10 +1,3 @@
-package org.forgerock.openam.auth.bankid.helper;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import no.bbs.server.vos.BIDSessionData;
-
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -27,6 +20,13 @@ import no.bbs.server.vos.BIDSessionData;
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  */
+
+package org.forgerock.openam.auth.bankid.helper;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.bbs.server.vos.BIDSessionData;
 
 public class DataHelper {
     @JsonProperty("helperURL")

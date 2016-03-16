@@ -1,7 +1,3 @@
-package org.forgerock.openam.auth.bankid;
-
-import java.security.Principal;
-
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -24,6 +20,11 @@ import java.security.Principal;
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  */
+
+package org.forgerock.openam.auth.bankid;
+
+import java.security.Principal;
+
 public class BankIDPrincipal implements Principal {
     private String name;
 
