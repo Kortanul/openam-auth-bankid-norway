@@ -30,7 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
 public class BankIDConfiguration {
-    //configuration
+    @JsonProperty("clientType")
+    String clientType;
+
     @JsonProperty("marchantName")
     String marchantName;
 
@@ -72,6 +74,10 @@ public class BankIDConfiguration {
 
     @JsonProperty("sessionTimeout")
     String sessionTimeout;
+
+    public String getClientType() {
+        return clientType;
+    }
 
     public String getMarchantName() {
         return marchantName;

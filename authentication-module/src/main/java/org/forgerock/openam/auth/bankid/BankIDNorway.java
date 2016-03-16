@@ -55,6 +55,9 @@ import java.util.*;
 
 public class BankIDNorway extends AMLoginModule {
     private static final Debug debug = Debug.getInstance("BankIDNorway");
+    public static final String WEB_CLIENT = "WEB_CLIENT";
+    public static final String MOBILE_CLIENT = "MOBILE_CLIENT";
+
     private ResourceBundle bundle;
 
     public static final PeriodicCleanUpMap requestCache = new PeriodicCleanUpMap(60000L, 300000L);
@@ -81,6 +84,8 @@ public class BankIDNorway extends AMLoginModule {
         }
         bundle = amCache.getResBundle("amBankIDNorway", getLoginLocale());
         config = new BankIDConfiguration();
+
+        config.clientType = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-type");
         config.marchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-name");
         config.marchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-web-address");
         config.marchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-url");
@@ -127,7 +132,7 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
-    private int initSession()  throws LoginException {
+    private int initWebClientSession()  throws LoginException {
         String sessionId = java.util.UUID.randomUUID().toString();
         dataHelper = new DataHelper(sessionId);
 
@@ -185,6 +190,10 @@ public class BankIDNorway extends AMLoginModule {
             customizeCallbacks(STATE_ERROR);
             return STATE_ERROR;
         }
+    }
+
+    private int initMobileClientSession()  throws LoginException {
+        return STATE_AUTH;
     }
 
     private Map createUserAttribtues(final ResponseHelper responseHelper) {
@@ -263,7 +272,11 @@ public class BankIDNorway extends AMLoginModule {
                 if (debug.messageEnabled()) {
                     debug.message("BankIDNorway::processing STATE_SESSION...");
                 }
-                return initSession();
+                if (config.clientType.equals(WEB_CLIENT)) {
+                    return initWebClientSession();
+                } else {
+                    return initMobileClientSession();
+                }
             }
             case STATE_AUTH: {
                 if (debug.messageEnabled()) {

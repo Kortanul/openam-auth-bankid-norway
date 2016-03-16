@@ -38,6 +38,18 @@
                 resourceName="bankidno">
 
             <Organization>
+                <AttributeSchema name="iplanet-am-auth-bankidnorway-client-type"
+                                 type="single_choice"
+                                 syntax="string"
+                                 i18nKey="a005">
+                    <ChoiceValues>
+                        <ChoiceValue i18nKey="a005.1">WEB_CLIENT</ChoiceValue>
+                        <ChoiceValue i18nKey="a005.2">MOBILE_CLIENT</ChoiceValue>
+                    </ChoiceValues>
+                    <DefaultValues>
+                        <Value>WEB_CLIENT</Value>
+                    </DefaultValues>
+                </AttributeSchema>
                 <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-name"
                                  type="single"
                                  syntax="string"
@@ -111,12 +123,12 @@
                                  syntax="string"
                                  i18nKey="a080">
                     <ChoiceValues>
-                        <ChoiceValue i18nKey="a080-1">2.16.578.1.16.1.9.1</ChoiceValue>
-                        <ChoiceValue i18nKey="a080-2">2.16.578.1.16.1.11.2.1</ChoiceValue>
-                        <ChoiceValue i18nKey="a080-3">2.16.578.1.16.1.12.1.1</ChoiceValue>
-                        <ChoiceValue i18nKey="a080-4">2.16.578.1.16.1.13.1.1</ChoiceValue>
-                        <ChoiceValue i18nKey="a080-5">2.16.578.1.16.1.12.2.1</ChoiceValue>
-                        <ChoiceValue i18nKey="a080-6">ALL</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.1">2.16.578.1.16.1.9.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.2">2.16.578.1.16.1.11.2.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.3">2.16.578.1.16.1.12.1.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.4">2.16.578.1.16.1.13.1.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.5">2.16.578.1.16.1.12.2.1</ChoiceValue>
+                        <ChoiceValue i18nKey="a080.6">ALL</ChoiceValue>
                     </ChoiceValues>
                     <DefaultValues>
                         <Value>2.16.578.1.16.1.9.1</Value>
@@ -168,6 +180,18 @@
                     </DefaultValues>
                 </AttributeSchema>
                 <SubSchema name="serverconfig" inheritance="multiple" resourceName="USE-PARENT">
+                    <AttributeSchema name="iplanet-am-auth-bankidnorway-client-type"
+                                     type="single_choice"
+                                     syntax="string"
+                                     i18nKey="a005">
+                        <ChoiceValues>
+                            <ChoiceValue i18nKey="a005.1">WEB_CLIENT</ChoiceValue>
+                            <ChoiceValue i18nKey="a005.2">MOBILE_CLIENT</ChoiceValue>
+                        </ChoiceValues>
+                        <DefaultValues>
+                            <Value>WEB_CLIENT</Value>
+                        </DefaultValues>
+                    </AttributeSchema>
                     <AttributeSchema name="iplanet-am-auth-bankidnorway-marchant-name"
                                      type="single"
                                      syntax="string"
@@ -242,12 +266,12 @@
                                      syntax="string"
                                      i18nKey="a080">
                         <ChoiceValues>
-                            <ChoiceValue i18nKey="a080-1">2.16.578.1.16.1.9.1</ChoiceValue>
-                            <ChoiceValue i18nKey="a080-2">2.16.578.1.16.1.11.2.1</ChoiceValue>
-                            <ChoiceValue i18nKey="a080-3">2.16.578.1.16.1.12.1.1</ChoiceValue>
-                            <ChoiceValue i18nKey="a080-4">2.16.578.1.16.1.13.1.1</ChoiceValue>
-                            <ChoiceValue i18nKey="a080-5">2.16.578.1.16.1.12.2.1</ChoiceValue>
-                            <ChoiceValue i18nKey="a080-6">ALL</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.1">2.16.578.1.16.1.9.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.2">2.16.578.1.16.1.11.2.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.3">2.16.578.1.16.1.12.1.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.4">2.16.578.1.16.1.13.1.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.5">2.16.578.1.16.1.12.2.1</ChoiceValue>
+                            <ChoiceValue i18nKey="a080.6">ALL</ChoiceValue>
                         </ChoiceValues>
                         <DefaultValues>
                             <Value>ALL</Value>
