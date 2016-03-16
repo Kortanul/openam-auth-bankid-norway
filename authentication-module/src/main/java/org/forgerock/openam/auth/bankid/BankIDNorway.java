@@ -18,6 +18,7 @@ import org.forgerock.openam.auth.bankid.helper.DataHelper;
 import org.forgerock.openam.auth.bankid.helper.RequestHelper;
 import org.forgerock.openam.auth.bankid.helper.ResponseHelper;
 
+import javax.crypto.SecretKey;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.ConfirmationCallback;
@@ -26,6 +27,8 @@ import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.security.Principal;
 import java.util.*;
 
@@ -125,8 +128,9 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
-    private void initSession()  throws LoginException {
+    private int initSession()  throws LoginException {
         String sessionId = java.util.UUID.randomUUID().toString();
+        dataHelper = new DataHelper(sessionId);
 
         try {
             HttpServletRequest request = getHttpServletRequest();
@@ -134,9 +138,6 @@ public class BankIDNorway extends AMLoginModule {
             BIDFactory factory = BIDFactory.getInstance();
             MerchantConfig mConfig = new MerchantConfig();
 
-            /*
-             * read below values from auth module config
-             */
             mConfig.setGrantedPolicies(config.marchantGrantedPolicies);
             mConfig.setKeystorePassword(config.marchantKeystorePassword);
             mConfig.setMerchantKeystore(config.marchantKeystore);
@@ -145,7 +146,6 @@ public class BankIDNorway extends AMLoginModule {
             factory.registerBankIDContext(mConfig);
 
             BIDFacade bankIDFacade = factory.getFacade(config.marchantName);
-
 
             InitSessionInfo initSessionInfo = new InitSessionInfo();
             initSessionInfo.setAction("auth");
@@ -167,7 +167,9 @@ public class BankIDNorway extends AMLoginModule {
             String helperURI = initSessionInfo.getHelperURI();
             traceId = initSessionInfo.getTraceID();
 
-            dataHelper = new DataHelper(helperURI, clientID, sessionId, traceId);
+            dataHelper.setHelperURL(helperURI);
+            dataHelper.setClientId(clientID);
+            dataHelper.setTraceId(traceId);
             dataHelper.setMarchantName(config.marchantName);
             dataHelper.setReadSSN(config.retrieveSSN);
 
@@ -177,10 +179,12 @@ public class BankIDNorway extends AMLoginModule {
             requestCache.put(sessionId, dataHelper);
 
             customizeCallbacks(STATE_AUTH);
+            return STATE_AUTH;
         } catch(BIDException be) {
-            // Handle Error Situation
-            debug.error("initSession()", be);
-            requestCache.remove(sessionId);
+            ResponseHelper responseHelper = new ResponseHelper("" + be.getErrorCode());
+            responseCache.put(sessionId, responseHelper);
+            customizeCallbacks(STATE_ERROR);
+            return STATE_ERROR;
         }
     }
 
@@ -260,8 +264,7 @@ public class BankIDNorway extends AMLoginModule {
                 if (debug.messageEnabled()) {
                     debug.message("BankIDNorway::processing STATE_SESSION...");
                 }
-                initSession();
-                return STATE_AUTH;
+                return initSession();
             }
             case STATE_AUTH: {
                 if (debug.messageEnabled()) {
@@ -332,11 +335,7 @@ public class BankIDNorway extends AMLoginModule {
 
             out.println(responseToClient);
         } catch(BIDException be) {
-            String errorMessage = be.getMessage();
-            int errorCode = be.getErrorCode();
-
-            //TODO: what should we do here
-
+            handleException(helper, be, out);
         }
 
     }
@@ -386,14 +385,7 @@ public class BankIDNorway extends AMLoginModule {
 
             out.println(responseToClient);
         } catch(BIDException be) {
-            String errorMessage = be.getMessage();
-            int errorCode = be.getErrorCode();
-
-            //TODO: what should we do here
-            if (debug.errorEnabled()) {
-                debug.error("can't verify authentication", be);
-            }
-
+            handleException(helper, be, out);
         }
 
     }
@@ -421,18 +413,49 @@ public class BankIDNorway extends AMLoginModule {
                 debug.message("User information: " + responseHelper.toString());
             }
 
-
             String responseToClient = bankIDFacade.verifyTransactionResponse(sessionData);
             out.println(responseToClient);
 
         } catch (BIDException be) {
-
-            //TODO: what should we do here
-            if (debug.errorEnabled()) {
-                debug.error("can't handle error", be);
-            }
+            handleException(helper, be, out);
         }
 
+    }
+
+    private static void handleException(RequestHelper helper, BIDException ex, PrintWriter out) {
+        DataHelper dataHelper = (DataHelper)requestCache.remove(helper.getSid());
+        BIDSessionData sessionData = dataHelper.getSessaionData();
+        BIDFactory factory = BIDFactory.getInstance();
+
+
+        sessionData.setErrCode("" + ex.getErrorCode());
+        ResponseHelper responseHelper = new ResponseHelper(sessionData.getErrCode());
+
+        responseCache.put(helper.getSid(), responseHelper);
+
+        if (debug.messageEnabled()) {
+            debug.message("User information: " + responseHelper.toString());
+        }
+
+
+        // If the key can not be found, a response must be sent, unencrypted
+        SecretKey key = sessionData.getSessionKey();
+        if (key == null) {
+            // Unencrypted response
+            out.println("errCode=" + ex.getErrorCode());
+        } else {
+            // Encrypted response
+            try {
+                BIDFacade bankIDFacade = factory.getFacade(helper.getMarchantName());
+
+                String responseToClient = bankIDFacade.verifyTransactionResponse(sessionData);
+                out.println(responseToClient);
+            } catch (BIDException ex2) {
+                if (debug.errorEnabled()) {
+                    debug.error("Error verifying transaction.", ex2);
+                };
+            }
+        }
     }
 
     public static void processRequest(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {

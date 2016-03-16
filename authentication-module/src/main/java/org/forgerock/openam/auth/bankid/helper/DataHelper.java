@@ -50,15 +50,8 @@ public class DataHelper {
     @JsonIgnore
     private BIDSessionData sessaionData;
 
-    public DataHelper(String helperURL, String clientId, String sessionId, String traceId) {
-        this.helperURL = helperURL;
-        this.clientId = clientId;
-        this.sessionId = sessionId;
-        this.traceId = traceId;
-    }
-
-    public DataHelper(String helperURL, String clientId) {
-        this(helperURL, clientId, null, null);
+    public DataHelper(String sessionid) {
+        this.sessionId = sessionid;
     }
 
     public String toString() {
