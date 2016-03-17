@@ -326,7 +326,7 @@ public class BankIDNorway extends AMLoginModule {
         return new BankIDPrincipal(userName);
     }
 
-    private static void initAuthentication(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
+    private static void initAuthentication(RequestHelper helper, PrintWriter out) {
         BIDSessionData sessionData = new BIDSessionData(helper.getTraceId());
         DataHelper dataHelper = (DataHelper)requestCache.get(helper.getSid());
         dataHelper.setSessaionData(sessionData);
@@ -342,7 +342,7 @@ public class BankIDNorway extends AMLoginModule {
                     helper.getEncAuth(),
                     helper.getSid(),
                     sessionData);
-            
+
             out.println(responseToClient);
         } catch(BIDException be) {
             handleException(helper, be, out);
@@ -350,7 +350,7 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
-    private static void verifyAuthentication(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
+    private static void verifyAuthentication(RequestHelper helper, PrintWriter out) {
         DataHelper dataHelper = (DataHelper)requestCache.remove(helper.getSid());
         BIDSessionData sessionData = dataHelper.getSessaionData();
         BIDFactory factory = BIDFactory.getInstance();
@@ -396,7 +396,7 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
-    private static void handleError(RequestHelper helper, HttpServletResponse response, PrintWriter out) {
+    private static void handleError(RequestHelper helper, PrintWriter out) {
         DataHelper dataHelper = (DataHelper)requestCache.remove(helper.getSid());
         BIDSessionData sessionData = dataHelper.getSessaionData();
         BIDFactory factory = BIDFactory.getInstance();
@@ -470,11 +470,11 @@ public class BankIDNorway extends AMLoginModule {
             debug.message("Request helper: " + reqHelper.toString());
         }
         if (reqHelper.isAuthRequest()) {
-            initAuthentication(reqHelper, response, out);
+            initAuthentication(reqHelper, out);
         } else if (reqHelper.isVerifyRequest()) {
-            verifyAuthentication(reqHelper, response, out);
+            verifyAuthentication(reqHelper, out);
         } else if (reqHelper.isError()) {
-            handleError(reqHelper, response, out);
+            handleError(reqHelper, out);
         }
     }
 }
