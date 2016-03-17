@@ -342,11 +342,7 @@ public class BankIDNorway extends AMLoginModule {
                     helper.getEncAuth(),
                     helper.getSid(),
                     sessionData);
-
-            //TODO: add BankID FOI to the config
-            response.setHeader("Access-Control-Allow-Origin", "https://csfe-preprod.bankid.no");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-
+            
             out.println(responseToClient);
         } catch(BIDException be) {
             handleException(helper, be, out);
@@ -390,10 +386,6 @@ public class BankIDNorway extends AMLoginModule {
             if (debug.messageEnabled()) {
                 debug.message("User information: " + responseHelper.toString());
             }
-
-            //TODO: add BankID FOI to the config
-            response.setHeader("Access-Control-Allow-Origin", "https://csfe-preprod.bankid.no");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
 
             String responseToClient = bankIDFacade.verifyTransactionResponse(sessionData);
 
