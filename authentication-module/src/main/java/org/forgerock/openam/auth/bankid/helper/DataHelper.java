@@ -41,8 +41,8 @@ public class DataHelper {
     @JsonProperty("tid")
     private String traceId;
 
-    @JsonProperty("marchant")
-    private String marchantName;
+    @JsonProperty("merchant")
+    private String merchantName;
 
     @JsonProperty("readSSN")
     private boolean readSSN;
@@ -95,12 +95,12 @@ public class DataHelper {
         this.traceId = traceId;
     }
 
-    public String getMarchantName() {
-        return marchantName;
+    public String getMerchantName() {
+        return merchantName;
     }
 
-    public void setMarchantName(String marchantName) {
-        this.marchantName = marchantName;
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
     }
     public BIDSessionData getSessaionData() {
         return sessaionData;

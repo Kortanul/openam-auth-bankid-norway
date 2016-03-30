@@ -59,7 +59,7 @@ public class RequestHelper {
         if (cache.containsKey(reqHelper.getSid())) {
             DataHelper dataHelper = (DataHelper)cache.get(reqHelper.getSid());
             reqHelper.traceId = dataHelper.getTraceId();
-            reqHelper.marchantName = dataHelper.getMarchantName();
+            reqHelper.marchantName = dataHelper.getMerchantName();
             reqHelper.readSSN = dataHelper.isReadSSN();
         }
         return reqHelper;

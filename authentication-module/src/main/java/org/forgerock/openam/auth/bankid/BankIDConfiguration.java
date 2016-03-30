@@ -33,29 +33,29 @@ public class BankIDConfiguration {
     @JsonProperty("clientType")
     String clientType;
 
-    @JsonProperty("marchantName")
-    String marchantName;
+    @JsonProperty("merchantName")
+    String merchantName;
 
-    @JsonProperty("marchantWebAddress")
-    String marchantWebAddress;
+    @JsonProperty("merchantWebAddress")
+    String merchantWebAddress;
 
-    @JsonProperty("marchantURL")
-    String marchantURL;
+    @JsonProperty("merchantURL")
+    String merchantURL;
 
-    @JsonProperty("marchantFeDomain")
-    String marchantFeDomain;
+    @JsonProperty("merchantFeDomain")
+    String merchantFeDomain;
 
-    @JsonProperty("marchantFeAncestors")
-    String marchantFeAncestors;
+    @JsonProperty("merchantFeAncestors")
+    String merchantFeAncestors;
 
-    @JsonProperty("marchantKeystore")
-    String marchantKeystore;
+    @JsonProperty("merchantKeystore")
+    String merchantKeystore;
 
     @JsonIgnore
-    String marchantKeystorePassword;
+    String merchantKeystorePassword;
 
-    @JsonProperty("marchantGrantedPolicies")
-    String marchantGrantedPolicies;
+    @JsonProperty("merchantGrantedPolicies")
+    String merchantGrantedPolicies;
 
     @JsonProperty("retrieveSSN")
     boolean retrieveSSN;
@@ -79,68 +79,68 @@ public class BankIDConfiguration {
         return clientType;
     }
 
-    public String getMarchantName() {
-        return marchantName;
+    public String getMerchantName() {
+        return merchantName;
     }
 
-    public void setMarchantName(String marchantName) {
-        this.marchantName = marchantName;
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
     }
 
-    public String getMarchantWebAddress() {
-        return marchantWebAddress;
+    public String getMerchantWebAddress() {
+        return merchantWebAddress;
     }
 
-    public void setMarchantWebAddress(String marchantWebAddress) {
-        this.marchantWebAddress = marchantWebAddress;
+    public void setMerchantWebAddress(String merchantWebAddress) {
+        this.merchantWebAddress = merchantWebAddress;
     }
 
-    public String getMarchantURL() {
-        return marchantURL;
+    public String getMerchantURL() {
+        return merchantURL;
     }
 
-    public void setMarchantURL(String marchantURL) {
-        this.marchantURL = marchantURL;
+    public void setMerchantURL(String merchantURL) {
+        this.merchantURL = merchantURL;
     }
 
-    public String getMarchantFeDomain() {
-        return marchantFeDomain;
+    public String getMerchantFeDomain() {
+        return merchantFeDomain;
     }
 
-    public void setMarchantFeDomain(String marchantFeDomain) {
-        this.marchantFeDomain = marchantFeDomain;
+    public void setMerchantFeDomain(String merchantFeDomain) {
+        this.merchantFeDomain = merchantFeDomain;
     }
 
-    public String getMarchantFeAncestors() {
-        return marchantFeAncestors;
+    public String getMerchantFeAncestors() {
+        return merchantFeAncestors;
     }
 
-    public void setMarchantFeAncestors(String marchantFeAncestors) {
-        this.marchantFeAncestors = marchantFeAncestors;
+    public void setMerchantFeAncestors(String merchantFeAncestors) {
+        this.merchantFeAncestors = merchantFeAncestors;
     }
 
-    public String getMarchantKeystore() {
-        return marchantKeystore;
+    public String getMerchantKeystore() {
+        return merchantKeystore;
     }
 
-    public void setMarchantKeystore(String marchantKeystore) {
-        this.marchantKeystore = marchantKeystore;
+    public void setMerchantKeystore(String merchantKeystore) {
+        this.merchantKeystore = merchantKeystore;
     }
 
-    public String getMarchantKeystorePassword() {
-        return marchantKeystorePassword;
+    public String getMerchantKeystorePassword() {
+        return merchantKeystorePassword;
     }
 
-    public void setMarchantKeystorePassword(String marchantKeystorePassword) {
-        this.marchantKeystorePassword = marchantKeystorePassword;
+    public void setMerchantKeystorePassword(String merchantKeystorePassword) {
+        this.merchantKeystorePassword = merchantKeystorePassword;
     }
 
-    public String getMarchantGrantedPolicies() {
-        return marchantGrantedPolicies;
+    public String getMerchantGrantedPolicies() {
+        return merchantGrantedPolicies;
     }
 
-    public void setMarchantGrantedPolicies(String marchantGrantedPolicies) {
-        this.marchantGrantedPolicies = marchantGrantedPolicies;
+    public void setMerchantGrantedPolicies(String merchantGrantedPolicies) {
+        this.merchantGrantedPolicies = merchantGrantedPolicies;
     }
 
     public boolean isRetrieveSSN() {

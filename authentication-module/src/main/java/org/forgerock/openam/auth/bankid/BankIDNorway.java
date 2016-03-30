@@ -86,30 +86,30 @@ public class BankIDNorway extends AMLoginModule {
         config = new BankIDConfiguration();
 
         config.clientType = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-type");
-        config.marchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-name");
-        config.marchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-web-address");
-        config.marchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-url");
-        config.marchantFeDomain = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-domain");
-        config.marchantFeAncestors = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-fe-ancestors");
-        config.marchantKeystore = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore");
-        config.marchantKeystorePassword = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-marchant-keystore-pwd");
+        config.merchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-name");
+        config.merchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-web-address");
+        config.merchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-url");
+        config.merchantFeDomain = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-fe-domain");
+        config.merchantFeAncestors = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-fe-ancestors");
+        config.merchantKeystore = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-keystore");
+        config.merchantKeystorePassword = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-keystore-pwd");
         try {
-            Set<String> policies = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-marchant-granted-policies");
+            Set<String> policies = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-merchant-granted-policies");
 
             if (policies.contains("ALL")) {
-                config.marchantGrantedPolicies = "ALL";
+                config.merchantGrantedPolicies = "ALL";
             } else {
-                config.marchantGrantedPolicies = StringUtils.join(policies, ",");
+                config.merchantGrantedPolicies = StringUtils.join(policies, ",");
             }
         } catch (ValueNotFoundException e) {
-            config.marchantGrantedPolicies = "ALL";
+            config.merchantGrantedPolicies = "ALL";
         }
 
         config.retrieveSSN = CollectionHelper.getBooleanMapAttr(options, "iplanet-am-auth-bankidnorway-read-ssn", false);
 
         config.propsMappings = new HashMap<String, String>();
         try {
-            Set<String> mappings = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-marchant-mapping-list");
+            Set<String> mappings = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-merchant-mapping-list");
             for (String mapping : mappings) {
                 String split[] = mapping.split("=", 2);
                 config.propsMappings.put(split[0], split[1]);
@@ -142,29 +142,29 @@ public class BankIDNorway extends AMLoginModule {
             BIDFactory factory = BIDFactory.getInstance();
             MerchantConfig mConfig = new MerchantConfig();
 
-            mConfig.setGrantedPolicies(config.marchantGrantedPolicies);
-            mConfig.setKeystorePassword(config.marchantKeystorePassword);
-            mConfig.setMerchantKeystore(config.marchantKeystore);
-            mConfig.setMerchantName(config.marchantName);
-            mConfig.setWebAddresses(config.marchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
+            mConfig.setGrantedPolicies(config.merchantGrantedPolicies);
+            mConfig.setKeystorePassword(config.merchantKeystorePassword);
+            mConfig.setMerchantKeystore(config.merchantKeystore);
+            mConfig.setMerchantName(config.merchantName);
+            mConfig.setWebAddresses(config.merchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
             factory.registerBankIDContext(mConfig);
 
-            BIDFacade bankIDFacade = factory.getFacade(config.marchantName);
+            BIDFacade bankIDFacade = factory.getFacade(config.merchantName);
 
             InitSessionInfo initSessionInfo = new InitSessionInfo();
             initSessionInfo.setAction("auth");
             initSessionInfo.setUserAgent(request.getHeader("user-agent"));
             initSessionInfo.setClientVersion(CLIENT_VERSION);
-            initSessionInfo.setMerchantURL(config.marchantURL);
+            initSessionInfo.setMerchantURL(config.merchantURL);
 
             String lang = getLoginLocale().getLanguage();
             lang = lang.equals("no") || lang.equals("nb") || lang.equals("nn") ? "nb" : "en";
             initSessionInfo.setLocaleId(lang);
             initSessionInfo.setSid(sessionId);
             initSessionInfo.setSuppressBroadcast("N");
-            initSessionInfo.setCertType(config.marchantGrantedPolicies);
+            initSessionInfo.setCertType(config.merchantGrantedPolicies);
             initSessionInfo.setTimeout(config.timeout);
-            initSessionInfo.setMerchantFEDomain(config.marchantFeDomain);
+            initSessionInfo.setMerchantFEDomain(config.merchantFeDomain);
 
             initSessionInfo = bankIDFacade.initSession(initSessionInfo);
 
@@ -176,7 +176,7 @@ public class BankIDNorway extends AMLoginModule {
             dataHelper.setHelperURL(helperURI);
             dataHelper.setClientId(clientID);
             dataHelper.setTraceId(traceId);
-            dataHelper.setMarchantName(config.marchantName);
+            dataHelper.setMerchantName(config.merchantName);
             dataHelper.setReadSSN(config.retrieveSSN);
 
             if (debug.messageEnabled()) {
