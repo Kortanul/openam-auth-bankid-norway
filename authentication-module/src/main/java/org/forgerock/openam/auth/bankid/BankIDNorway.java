@@ -137,6 +137,20 @@ public class BankIDNorway extends AMLoginModule {
         return lang.equals("no") || lang.equals("nb") || lang.equals("nn") ? "nb" : "en";
     }
 
+    private BIDFacade getMerchantFacade() throws BIDException {
+        BIDFactory factory = BIDFactory.getInstance();
+        MerchantConfig mConfig = new MerchantConfig();
+
+        mConfig.setGrantedPolicies(config.merchantGrantedPolicies);
+        mConfig.setKeystorePassword(config.merchantKeystorePassword);
+        mConfig.setMerchantKeystore(config.merchantKeystore);
+        mConfig.setMerchantName(config.merchantName);
+        mConfig.setWebAddresses(config.merchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
+        factory.registerBankIDContext(mConfig);
+
+        return factory.getFacade(config.merchantName);
+    }
+
     private int initWebClientSession()  throws LoginException {
         String sessionId = java.util.UUID.randomUUID().toString();
         dataHelper = new DataHelper(sessionId);
@@ -144,17 +158,7 @@ public class BankIDNorway extends AMLoginModule {
         try {
             HttpServletRequest request = getHttpServletRequest();
 
-            BIDFactory factory = BIDFactory.getInstance();
-            MerchantConfig mConfig = new MerchantConfig();
-
-            mConfig.setGrantedPolicies(config.merchantGrantedPolicies);
-            mConfig.setKeystorePassword(config.merchantKeystorePassword);
-            mConfig.setMerchantKeystore(config.merchantKeystore);
-            mConfig.setMerchantName(config.merchantName);
-            mConfig.setWebAddresses(config.merchantWebAddress); //"bankid-am.openrock.org,192.168.0.1"
-            factory.registerBankIDContext(mConfig);
-
-            BIDFacade bankIDFacade = factory.getFacade(config.merchantName);
+            BIDFacade bankIDFacade = getMerchantFacade();
 
             InitSessionInfo initSessionInfo = new InitSessionInfo();
             initSessionInfo.setAction("auth");
@@ -198,7 +202,34 @@ public class BankIDNorway extends AMLoginModule {
     }
 
     private int initMobileClientSession()  throws LoginException {
-        return STATE_AUTH;
+        String sessionId = java.util.UUID.randomUUID().toString();
+        dataHelper = new DataHelper(sessionId);
+
+        try {
+            BIDFacade bankIDFacade = getMerchantFacade();
+
+            //TODO: collect either from the UI or from the existing AM's session
+            String phoneNumber = "47637958";
+            String phoneAlias = "collected from webSite";
+            String merchantReference = bankIDFacade.generateMerchantReference(getBankIdLocale());
+
+            MobileInfo mobileInfo = new MobileInfo();
+            mobileInfo.setAction("auth");
+            mobileInfo.setMerchantReference(merchantReference);
+            mobileInfo.setPhoneNumber(phoneNumber);
+            mobileInfo.setPhoneAlias(phoneAlias);
+            // be aware that the following call can cause a hang for up to 3 minutes while the
+            // end-user processes messages on the cell phone.At the same time the web application
+            // must expect callbacks on the specified URL
+            TransactionAndStatus ts = bankIDFacade.requestMobileAction(mobileInfo);
+
+            return STATE_AUTH;
+        } catch(BIDException be) {
+            ResponseHelper responseHelper = new ResponseHelper("" + be.getErrorCode());
+            responseCache.put(sessionId, responseHelper);
+            customizeCallbacks(STATE_ERROR);
+            return STATE_ERROR;
+        }
     }
 
     private Map createUserAttribtues(final ResponseHelper responseHelper) {
