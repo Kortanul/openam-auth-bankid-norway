@@ -132,6 +132,11 @@ public class BankIDNorway extends AMLoginModule {
 
     }
 
+    private String getLocale() {
+        String lang = getLoginLocale().getLanguage();
+        return lang.equals("no") || lang.equals("nb") || lang.equals("nn") ? "nb" : "en";
+    }
+
     private int initWebClientSession()  throws LoginException {
         String sessionId = java.util.UUID.randomUUID().toString();
         dataHelper = new DataHelper(sessionId);
@@ -157,9 +162,7 @@ public class BankIDNorway extends AMLoginModule {
             initSessionInfo.setClientVersion(CLIENT_VERSION);
             initSessionInfo.setMerchantURL(config.merchantURL);
 
-            String lang = getLoginLocale().getLanguage();
-            lang = lang.equals("no") || lang.equals("nb") || lang.equals("nn") ? "nb" : "en";
-            initSessionInfo.setLocaleId(lang);
+            initSessionInfo.setLocaleId(getLocale());
             initSessionInfo.setSid(sessionId);
             initSessionInfo.setSuppressBroadcast("N");
             initSessionInfo.setCertType(config.merchantGrantedPolicies);
