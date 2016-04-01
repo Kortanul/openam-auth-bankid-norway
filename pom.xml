@@ -33,7 +33,6 @@
     <description>OpenAM Authentication for BankID implementation in Norway</description>
     <modules>
         <module>authentication-module</module>
-        <module>authentication-ui</module>
     </modules>
     <groupId>org.forgerock.openam.auth</groupId>
     <artifactId>openam-auth-bankid-norway</artifactId>
