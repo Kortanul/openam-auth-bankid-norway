@@ -337,7 +337,7 @@ public class BankIDNorway extends AMLoginModule {
 
                 //TODO: detect existing session
 
-                if (config.clientType.equals(WEB_CLIENT)) {
+                if (config.clientType == ClientType.WEB) {
                     //TODO: get user SSN from the session
                     return initWebClientSession();
                 } else {
@@ -393,7 +393,7 @@ public class BankIDNorway extends AMLoginModule {
     private static void initAuthentication(RequestHelper helper, PrintWriter out) {
         DataHelper dataHelper = (DataHelper)requestCache.get(helper.getSid());
 
-        BIDSessionData sessionData = dataHelper.getClientType() == ClientType.WEB
+        BIDSessionData sessionData = (dataHelper.getClientType() == ClientType.WEB)
                 ? new BIDSessionData(helper.getTraceId())
                 : new BIDSessionData();
 
