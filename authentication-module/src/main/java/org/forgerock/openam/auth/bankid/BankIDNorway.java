@@ -23,8 +23,10 @@
 
 package org.forgerock.openam.auth.bankid;
 
+import com.iplanet.sso.SSOToken;
 import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.spi.AMLoginModule;
+import com.sun.identity.authentication.spi.AuthLoginException;
 import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.common.PeriodicCleanUpMap;
 import com.sun.identity.shared.datastruct.CollectionHelper;
@@ -35,7 +37,6 @@ import no.bbs.server.exception.BIDException;
 import no.bbs.server.implementation.BIDFacade;
 import no.bbs.server.implementation.BIDFactory;
 import no.bbs.server.vos.*;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.forgerock.openam.auth.bankid.helper.DataHelper;
 import org.forgerock.openam.auth.bankid.helper.RequestHelper;
@@ -45,6 +46,7 @@ import javax.crypto.SecretKey;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.ConfirmationCallback;
+import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
@@ -55,6 +57,9 @@ import java.util.*;
 
 public class BankIDNorway extends AMLoginModule {
     private static final Debug debug = Debug.getInstance("BankIDNorway");
+    private static final String RB_BUNDLE_NAME = "amBankIDNorway";
+    private final static String CLIENT_VERSION = "2.1";
+
     public static final String WEB_CLIENT = "WEB_CLIENT";
     public static final String MOBILE_CLIENT = "MOBILE_CLIENT";
 
@@ -63,14 +68,13 @@ public class BankIDNorway extends AMLoginModule {
     public static final PeriodicCleanUpMap requestCache = new PeriodicCleanUpMap(60000L, 300000L);
     public static final PeriodicCleanUpMap responseCache = new PeriodicCleanUpMap(60000L, 300000L);
 
-    private static final int STATE_SESSION = 1;
-    private static final int STATE_AUTH = 2;
-    private static final int STATE_ERROR = 3;
+    private static final int STATE_INIT = 1;
+    private static final int STATE_WEB_CLIENT_AUTH = 2;
+    private static final int STATE_MOBILE_CLIENT_FORM = 3;
+    private static final int STATE_MOBILE_CLIENT_AUTH = 4;
 
     private BankIDConfiguration config;
     private DataHelper dataHelper;
-
-    private final static String CLIENT_VERSION = "2.1";
 
     //
     private String traceId;
@@ -82,10 +86,17 @@ public class BankIDNorway extends AMLoginModule {
         if (debug.messageEnabled()) {
             debug.message("BankID Norway::init");
         }
-        bundle = amCache.getResBundle("amBankIDNorway", getLoginLocale());
+
+        bundle = amCache.getResBundle(RB_BUNDLE_NAME, getLoginLocale());
         config = new BankIDConfiguration();
 
-        config.clientType = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-type");
+        String clientType = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-client-type");
+        if (WEB_CLIENT.equals(clientType)) {
+            config.clientType = ClientType.WEB;
+        } else if (MOBILE_CLIENT.equals(clientType)) {
+            config.clientType = ClientType.MOBILE;
+        }
+
         config.merchantName = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-name");
         config.merchantWebAddress = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-web-address");
         config.merchantURL = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-url");
@@ -93,8 +104,9 @@ public class BankIDNorway extends AMLoginModule {
         config.merchantFeAncestors = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-fe-ancestors");
         config.merchantKeystore = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-keystore");
         config.merchantKeystorePassword = CollectionHelper.getMapAttr(options, "iplanet-am-auth-bankidnorway-merchant-keystore-pwd");
+
         try {
-            Set<String> policies = CollectionHelper.getMapSetThrows(options, "iplanet-am-auth-bankidnorway-merchant-granted-policies");
+            Set<String> policies = CollectionHelper.getMapSetThrows(options,"iplanet-am-auth-bankidnorway-merchant-granted-policies");
 
             if (policies.contains("ALL")) {
                 config.merchantGrantedPolicies = "ALL";
@@ -185,55 +197,76 @@ public class BankIDNorway extends AMLoginModule {
             dataHelper.setTraceId(traceId);
             dataHelper.setMerchantName(config.merchantName);
             dataHelper.setReadSSN(config.retrieveSSN);
+            dataHelper.setClientType(ClientType.WEB);
 
             if (debug.messageEnabled()) {
                 debug.message("Helper data: " + dataHelper.toString());
             }
             requestCache.put(sessionId, dataHelper);
 
-            customizeCallbacks(STATE_AUTH);
-            return STATE_AUTH;
+            customizeCallbacks(STATE_WEB_CLIENT_AUTH);
+            return STATE_WEB_CLIENT_AUTH;
         } catch(BIDException be) {
-            ResponseHelper responseHelper = new ResponseHelper("" + be.getErrorCode());
-            responseCache.put(sessionId, responseHelper);
-            customizeCallbacks(STATE_ERROR);
-            return STATE_ERROR;
+            throw new AuthLoginException(RB_BUNDLE_NAME, "err." + be.getErrorCode(), null);
         }
     }
 
-    private int initMobileClientSession()  throws LoginException {
+    private int initMobileClientSession(String mobile, String dob)  throws LoginException {
+        if (mobile == null || mobile.isEmpty()) {
+            customizeCallbacks(STATE_MOBILE_CLIENT_FORM);
+            return STATE_MOBILE_CLIENT_FORM;
+        }
+
         String sessionId = java.util.UUID.randomUUID().toString();
         dataHelper = new DataHelper(sessionId);
+        dataHelper.setMerchantName(config.merchantName);
+        dataHelper.setReadSSN(config.retrieveSSN);
+        dataHelper.setClientType(ClientType.MOBILE);
+        dataHelper.setNextURL(config.nextURL);
 
         try {
             BIDFacade bankIDFacade = getMerchantFacade();
-
-            //TODO: collect either from the UI or from the existing AM's session
-            String phoneNumber = "47637958";
-            String phoneAlias = "collected from webSite";
-            String merchantReference = bankIDFacade.generateMerchantReference(getBankIdLocale());
+            String merchantReference = bankIDFacade.generateMerchantReference("no_NO");
 
             MobileInfo mobileInfo = new MobileInfo();
             mobileInfo.setAction("auth");
             mobileInfo.setMerchantReference(merchantReference);
-            mobileInfo.setPhoneNumber(phoneNumber);
-            mobileInfo.setPhoneAlias(phoneAlias);
+            mobileInfo.setPhoneNumber(mobile);
+            mobileInfo.setPhoneAlias(dob);
+            mobileInfo.setSid(sessionId);
+            mobileInfo.setUrl(config.merchantURL);
+            mobileInfo.setCertType(config.getMerchantGrantedPolicies());
+
+            if (debug.messageEnabled()) {
+                debug.message("Helper data: " + dataHelper.toString());
+            }
+            requestCache.put(sessionId, dataHelper);
+
+
             // be aware that the following call can cause a hang for up to 3 minutes while the
             // end-user processes messages on the cell phone.At the same time the web application
             // must expect callbacks on the specified URL
             TransactionAndStatus ts = bankIDFacade.requestMobileAction(mobileInfo);
+            if ("0".equals(ts.getStatusCode())) {
+                return STATE_MOBILE_CLIENT_AUTH;
+            } else {
+                if (debug.errorEnabled()) {
+                    debug.error("Can't authenticate, status code: " + ts.getStatusCode());
+                }
+                requestCache.remove(sessionId);
+                throw new AuthLoginException(RB_BUNDLE_NAME, "err." + ts.getStatusCode(), null);
+            }
 
-            return STATE_AUTH;
         } catch(BIDException be) {
-            ResponseHelper responseHelper = new ResponseHelper("" + be.getErrorCode());
-            responseCache.put(sessionId, responseHelper);
-            customizeCallbacks(STATE_ERROR);
-            return STATE_ERROR;
+            if (debug.errorEnabled()) {
+                debug.error("Can't initialize mobile client", be);
+            }
+            throw new AuthLoginException(RB_BUNDLE_NAME, "err." + be.getErrorCode(), null);
         }
     }
 
     private Map createUserAttribtues(final ResponseHelper responseHelper) {
-        Map attrs = new HashedMap();
+        Map<String, Set<String>> attrs = new HashMap<String, Set<String>>();
 
         if (config.propsMappings.containsKey("SSN") && responseHelper.getSsn() != null) {
             attrs.put(config.propsMappings.get("SSN"), new HashSet<String>() {{
@@ -263,31 +296,24 @@ public class BankIDNorway extends AMLoginModule {
 
     private void customizeCallbacks(int state) throws LoginException {
         switch (state) {
-            case STATE_AUTH: {
+            case STATE_WEB_CLIENT_AUTH: {
                 StringBuffer js = new StringBuffer();
                 js.append("var dataHelper = ")
                         .append(dataHelper.toString()).append(System.lineSeparator())
                         .append("initiateClient(dataHelper);");
 
                 ScriptTextOutputCallback stoc = new ScriptTextOutputCallback(js.toString());
-                replaceCallback(STATE_AUTH, 1, stoc);
+                replaceCallback(STATE_WEB_CLIENT_AUTH, 0, stoc);
                 break;
             }
-            case STATE_ERROR: {
-                ResponseHelper responseHelper = (ResponseHelper)responseCache.get(dataHelper.getSessionId());
+            case STATE_MOBILE_CLIENT_FORM: {
+                substituteHeader(STATE_MOBILE_CLIENT_FORM, bundle.getString("mobile.form.header"));
 
-                substituteHeader(STATE_ERROR, bundle.getString("msg.authFailed"));
-                String errorCode = responseHelper.getErrorCode();
+                NameCallback phoneNC = new NameCallback(bundle.getString("cb.phone"));
+                replaceCallback(STATE_MOBILE_CLIENT_FORM, 0, phoneNC);
 
-                String userMsg = bundle.containsKey(errorCode)
-                        ? bundle.getString(errorCode)
-                        : bundle.getString("msg.genericError") + errorCode;
-                TextOutputCallback toc = new TextOutputCallback(TextOutputCallback.ERROR, userMsg);
-                replaceCallback(STATE_ERROR, 0, toc);
-
-                ConfirmationCallback cc = new ConfirmationCallback(ConfirmationCallback.INFORMATION,
-                        new String [] {bundle.getString("msg.tryAgain"), bundle.getString("msg.cancel")}, 0);
-                replaceCallback(STATE_ERROR, 1, cc);
+                NameCallback dobNC = new NameCallback(bundle.getString("cb.dob"));
+                replaceCallback(STATE_MOBILE_CLIENT_FORM, 1, dobNC);
                 break;
             }
         }
@@ -304,26 +330,33 @@ public class BankIDNorway extends AMLoginModule {
     @Override
     public int process(Callback[] callbacks, int state) throws LoginException {
         switch (state) {
-            case STATE_SESSION: {
+            case STATE_INIT: {
                 if (debug.messageEnabled()) {
-                    debug.message("BankIDNorway::processing STATE_SESSION...");
+                    debug.message("BankIDNorway::processing STATE_INIT...");
                 }
+
+                //TODO: detect existing session
+
                 if (config.clientType.equals(WEB_CLIENT)) {
+                    //TODO: get user SSN from the session
                     return initWebClientSession();
                 } else {
-                    return initMobileClientSession();
+                    //TODO: get phone and alias from the session
+                    String mobile = null;
+                    String dob = null;
+                    return initMobileClientSession(mobile, dob);
                 }
             }
-            case STATE_AUTH: {
+            case STATE_MOBILE_CLIENT_AUTH:
+            case STATE_WEB_CLIENT_AUTH: {
                 if (debug.messageEnabled()) {
-                    debug.message("BankIDNorway::processing STATE_AUTH...");
+                    debug.message("BankIDNorway::processing STATE_AUTHENTICATION...");
                 }
                 if (responseCache.containsKey(dataHelper.getSessionId())) {
                     ResponseHelper responseHelper = (ResponseHelper)responseCache.get(dataHelper.getSessionId());
 
                     if (responseHelper.isError()) {
-                        customizeCallbacks(STATE_ERROR);
-                       return STATE_ERROR;
+                        throw new AuthLoginException(RB_BUNDLE_NAME, "err." + responseHelper.getErrorCode(), null);
                     }
 
                     Map attrs = createUserAttribtues(responseHelper);
@@ -335,18 +368,15 @@ public class BankIDNorway extends AMLoginModule {
                 }
                 return ISAuthConstants.LOGIN_SUCCEED;
             }
-            case STATE_ERROR: {
+            case STATE_MOBILE_CLIENT_FORM: {
                 if (debug.messageEnabled()) {
-                    debug.message("BankIDNorway::processing STATE_ERROR...");
+                    debug.message("BankIDNorway::processing STATE_MOBILE_CLIENT_FORM...");
                 }
-                cleanup();
 
-                int action = ((ConfirmationCallback)callbacks[1]).getSelectedIndex();
-                if (action == 0) {
-                    return STATE_SESSION;
-                } else {
-                    return ISAuthConstants.LOGIN_IGNORE;
-                }
+                String mobile = ( (NameCallback) callbacks[0]).getName();
+                String dob = ( (NameCallback) callbacks[1]).getName();
+
+                return initMobileClientSession(mobile, dob);
             }
             default: {
 
@@ -361,8 +391,12 @@ public class BankIDNorway extends AMLoginModule {
     }
 
     private static void initAuthentication(RequestHelper helper, PrintWriter out) {
-        BIDSessionData sessionData = new BIDSessionData(helper.getTraceId());
         DataHelper dataHelper = (DataHelper)requestCache.get(helper.getSid());
+
+        BIDSessionData sessionData = dataHelper.getClientType() == ClientType.WEB
+                ? new BIDSessionData(helper.getTraceId())
+                : new BIDSessionData();
+
         dataHelper.setSessaionData(sessionData);
 
         BIDFactory factory = BIDFactory.getInstance();
@@ -419,6 +453,10 @@ public class BankIDNorway extends AMLoginModule {
 
             if (debug.messageEnabled()) {
                 debug.message("User information: " + responseHelper.toString());
+            }
+
+            if (dataHelper.getClientType() == ClientType.MOBILE) {
+                sessionData.setNextURL(dataHelper.getNextURL());
             }
 
             String responseToClient = bankIDFacade.verifyTransactionResponse(sessionData);

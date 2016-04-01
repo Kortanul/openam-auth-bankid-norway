@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class BankIDConfiguration {
     @JsonProperty("clientType")
-    String clientType;
+    ClientType clientType;
 
     @JsonProperty("merchantName")
     String merchantName;
@@ -75,7 +75,7 @@ public class BankIDConfiguration {
     @JsonProperty("sessionTimeout")
     String sessionTimeout;
 
-    public String getClientType() {
+    public ClientType getClientType() {
         return clientType;
     }
 

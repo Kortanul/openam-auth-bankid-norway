@@ -45,6 +45,8 @@ public class ResponseHelper {
         String split[] = cn.split(",", 2);
         if (split.length == 2) {
             this.sn = split[0];
+        } else {
+            this.sn = cn;   
         }
         this.errorCode = null;
     }

@@ -27,19 +27,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.bbs.server.vos.BIDSessionData;
+import org.forgerock.openam.auth.bankid.ClientType;
 
 public class DataHelper {
-    @JsonProperty("helperURL")
-    private String helperURL;
-
-    @JsonProperty("cid")
-    private String clientId;
+    /* COMMON PROPERTIES */
 
     @JsonProperty("sid")
     private String sessionId;
-
-    @JsonProperty("tid")
-    private String traceId;
 
     @JsonProperty("merchant")
     private String merchantName;
@@ -49,6 +43,26 @@ public class DataHelper {
 
     @JsonIgnore
     private BIDSessionData sessaionData;
+
+    @JsonProperty("clientType")
+    private ClientType clientType;
+
+    /* WEB CLIENT SPECIFIC */
+
+    @JsonProperty("helperURL")
+    private String helperURL;
+
+    @JsonProperty("cid")
+    private String clientId;
+
+    @JsonProperty("tid")
+    private String traceId;
+
+    /* MOBILE CLIENT SPECIFIC */
+
+    @JsonProperty("nextURL")
+    private String nextURL;
+
 
     public DataHelper(String sessionid) {
         this.sessionId = sessionid;
@@ -116,5 +130,21 @@ public class DataHelper {
 
     public void setReadSSN(boolean readSSN) {
         this.readSSN = readSSN;
+    }
+
+    public ClientType getClientType() {
+        return clientType;
+    }
+
+    public void setClientType(ClientType clientType) {
+        this.clientType = clientType;
+    }
+
+    public String getNextURL() {
+        return nextURL;
+    }
+
+    public void setNextURL(String nextURL) {
+        this.nextURL = nextURL;
     }
 }
