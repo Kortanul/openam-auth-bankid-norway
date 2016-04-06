@@ -1,43 +1,21 @@
 <div class="container">
     <script type="application/javascript">
-        helperURL = $('input#helperURL').val()
-        function initiateClient(dataHelper) {
-            console.log("Client initialization started with helperURL: ", dataHelper.helperURL, ", cid: ", dataHelper.cid);
-            $.getScript(dataHelper.helperURL)
-                    .done(function (script, textStatus) {
-                        bankidhelper.init({
-                            frameMode: 'iframe',
-                            cid: dataHelper.cid,
-                            containerID: 'bid_client',
-                            width: '100%',
-                            height: '100%',
-                            callback: function (x) {
-                                callback_function(x);
-                            }
-                        });
-                    });
-        }
-
-        function callback_function(jsonResponse) {
-            console.log("trying to submit credentials from the callback function");
-            (function() {
-                var submitted = false;
-                function submit() {
-                    if (submitted) {
-                        return;
-                    }
-                    console.log("submitting credentials");
-                    if (!(window.jQuery)) {
-                        document.forms[0].submit();
-                    } else {
-                        $('input[type=submit]').trigger('click');
-                    }
-                    submitted = true;
+        (function() {
+            var submitted = false;
+            function submit() {
+                if (submitted) {
+                    return;
                 }
-                submit();
-            }) ();
-        }
-
+                console.log("submitting credentials");
+                if (!(window.jQuery)) {
+                    document.forms[0].submit();
+                } else {
+                    $('input[type=submit]').trigger('click');
+                }
+                submitted = true;
+            }
+            submit();
+        }) ();
     </script>
 
     <div id="bid_client">

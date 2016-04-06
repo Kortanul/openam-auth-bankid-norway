@@ -25,13 +25,26 @@
         "jar://com/sun/identity/authentication/Auth_Module_Properties.dtd">
 
 <ModuleProperties moduleName="BankIDNorway" version="1.0" >
+    <!-- generate sid -->
     <Callbacks length="0" order="1" timeout="600" header="#NOT SHOWN#" />
 
+    <!--
+        Due to direct calls from BankID (no cookies) to OpenAM we need a mean based on which
+        requests will be sent to the right OpenAM instance
+    -->
     <Callbacks length="1" order="2" timeout="600" header="#TO BE SUBSTITUTED#">
         <TextOutputCallback messageType="script">
         </TextOutputCallback>
     </Callbacks>
-    <Callbacks length="2" order="3" timeout="600" header="#TO BE SUBSTITUTED#">
+
+    <!-- web client helper -->
+    <Callbacks length="1" order="3" timeout="600" header="#TO BE SUBSTITUTED#">
+        <TextOutputCallback messageType="script">
+        </TextOutputCallback>
+    </Callbacks>
+
+    <!-- mobile client required data -->
+    <Callbacks length="2" order="4" timeout="600" header="#TO BE SUBSTITUTED#">
         <NameCallback required="true">
             <Prompt>Phone number:</Prompt>
         </NameCallback>
@@ -39,6 +52,5 @@
             <Prompt>Date of Birth (ddmmyy):</Prompt>
         </NameCallback>
     </Callbacks>
-    <Callbacks length="0" order="4" timeout="600" header="#NOT SHOWN#">
-    </Callbacks>
+
 </ModuleProperties>

@@ -23,7 +23,7 @@
 
 package org.forgerock.openam.auth.bankid;
 
-import com.iplanet.sso.SSOToken;
+import com.sun.identity.authentication.callbacks.HiddenValueCallback;
 import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.spi.AuthLoginException;
@@ -44,10 +44,7 @@ import org.forgerock.openam.auth.bankid.helper.ResponseHelper;
 
 import javax.crypto.SecretKey;
 import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.ConfirmationCallback;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.TextOutputCallback;
+import javax.security.auth.callback.*;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,10 +65,10 @@ public class BankIDNorway extends AMLoginModule {
     public static final PeriodicCleanUpMap requestCache = new PeriodicCleanUpMap(60000L, 300000L);
     public static final PeriodicCleanUpMap responseCache = new PeriodicCleanUpMap(60000L, 300000L);
 
-    private static final int STATE_INIT = 1;
-    private static final int STATE_WEB_CLIENT_AUTH = 2;
-    private static final int STATE_MOBILE_CLIENT_FORM = 3;
-    private static final int STATE_MOBILE_CLIENT_AUTH = 4;
+    private static final int STATE_SID = 1;
+    private static final int STATE_INIT = 2;
+    private static final int STATE_AUTHENTICATE = 3;
+    private static final int STATE_MOBILE_CLIENT_FORM = 4;
 
     private BankIDConfiguration config;
     private DataHelper dataHelper;
@@ -164,8 +161,7 @@ public class BankIDNorway extends AMLoginModule {
     }
 
     private int initWebClientSession()  throws LoginException {
-        String sessionId = java.util.UUID.randomUUID().toString();
-        dataHelper = new DataHelper(sessionId);
+        String sessionId = dataHelper.getSessionId();
 
         try {
             HttpServletRequest request = getHttpServletRequest();
@@ -204,21 +200,21 @@ public class BankIDNorway extends AMLoginModule {
             }
             requestCache.put(sessionId, dataHelper);
 
-            customizeCallbacks(STATE_WEB_CLIENT_AUTH);
-            return STATE_WEB_CLIENT_AUTH;
+            customizeCallbacks(STATE_AUTHENTICATE);
+            return STATE_AUTHENTICATE;
         } catch(BIDException be) {
             throw new AuthLoginException(RB_BUNDLE_NAME, "err." + be.getErrorCode(), null);
         }
     }
 
     private int initMobileClientSession(String mobile, String dob)  throws LoginException {
+        String sessionId = dataHelper.getSessionId();
+
         if (mobile == null || mobile.isEmpty()) {
             customizeCallbacks(STATE_MOBILE_CLIENT_FORM);
             return STATE_MOBILE_CLIENT_FORM;
         }
 
-        String sessionId = java.util.UUID.randomUUID().toString();
-        dataHelper = new DataHelper(sessionId);
         dataHelper.setMerchantName(config.merchantName);
         dataHelper.setReadSSN(config.retrieveSSN);
         dataHelper.setClientType(ClientType.MOBILE);
@@ -248,7 +244,7 @@ public class BankIDNorway extends AMLoginModule {
             // must expect callbacks on the specified URL
             TransactionAndStatus ts = bankIDFacade.requestMobileAction(mobileInfo);
             if ("0".equals(ts.getStatusCode())) {
-                return STATE_MOBILE_CLIENT_AUTH;
+                return STATE_AUTHENTICATE;
             } else {
                 if (debug.errorEnabled()) {
                     debug.error("Can't authenticate, status code: " + ts.getStatusCode());
@@ -296,14 +292,21 @@ public class BankIDNorway extends AMLoginModule {
 
     private void customizeCallbacks(int state) throws LoginException {
         switch (state) {
-            case STATE_WEB_CLIENT_AUTH: {
+            case STATE_INIT: {
+                ScriptTextOutputCallback stoc = new ScriptTextOutputCallback("var sid = " + dataHelper.getSessionId());
+                replaceCallback(STATE_INIT, 0, stoc);
+
+                break;
+            }
+            case STATE_AUTHENTICATE: {
                 StringBuffer js = new StringBuffer();
                 js.append("var dataHelper = ")
                         .append(dataHelper.toString()).append(System.lineSeparator())
                         .append("initiateClient(dataHelper);");
 
                 ScriptTextOutputCallback stoc = new ScriptTextOutputCallback(js.toString());
-                replaceCallback(STATE_WEB_CLIENT_AUTH, 0, stoc);
+                replaceCallback(STATE_AUTHENTICATE, 0, stoc);
+
                 break;
             }
             case STATE_MOBILE_CLIENT_FORM: {
@@ -317,7 +320,6 @@ public class BankIDNorway extends AMLoginModule {
                 break;
             }
         }
-
     }
 
     private void cleanup() {
@@ -330,6 +332,15 @@ public class BankIDNorway extends AMLoginModule {
     @Override
     public int process(Callback[] callbacks, int state) throws LoginException {
         switch (state) {
+            case STATE_SID : {
+                if (debug.messageEnabled()) {
+                    debug.message("BankIDNorway::processing STATE_SID...");
+                }
+                String sessionId = java.util.UUID.randomUUID().toString();
+                dataHelper = new DataHelper(sessionId);
+                customizeCallbacks(STATE_INIT);
+                return STATE_INIT;
+            }
             case STATE_INIT: {
                 if (debug.messageEnabled()) {
                     debug.message("BankIDNorway::processing STATE_INIT...");
@@ -347,8 +358,7 @@ public class BankIDNorway extends AMLoginModule {
                     return initMobileClientSession(mobile, dob);
                 }
             }
-            case STATE_MOBILE_CLIENT_AUTH:
-            case STATE_WEB_CLIENT_AUTH: {
+            case STATE_AUTHENTICATE: {
                 if (debug.messageEnabled()) {
                     debug.message("BankIDNorway::processing STATE_AUTHENTICATION...");
                 }
