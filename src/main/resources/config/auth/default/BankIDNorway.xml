@@ -53,4 +53,6 @@
         </NameCallback>
     </Callbacks>
 
+    <!-- mobile client auth -->
+    <Callbacks length="0" order="5" timeout="600" header="#NOT SHOWN#" />
 </ModuleProperties>

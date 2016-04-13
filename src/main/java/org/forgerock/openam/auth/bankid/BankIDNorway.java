@@ -68,6 +68,7 @@ public class BankIDNorway extends AMLoginModule {
     private static final int STATE_INIT = 2;
     private static final int STATE_AUTHENTICATE = 3;
     private static final int STATE_MOBILE_CLIENT_FORM = 4;
+    private static final int STATE_AUTHENTICATE_MOBILE = 5;
 
     private BankIDConfiguration config;
     private DataHelper dataHelper;
@@ -243,7 +244,7 @@ public class BankIDNorway extends AMLoginModule {
             // must expect callbacks on the specified URL
             TransactionAndStatus ts = bankIDFacade.requestMobileAction(mobileInfo);
             if ("0".equals(ts.getStatusCode())) {
-                return STATE_AUTHENTICATE;
+                return STATE_AUTHENTICATE_MOBILE;
             } else {
                 if (debug.errorEnabled()) {
                     debug.error("Can't authenticate, status code: " + ts.getStatusCode());
@@ -357,6 +358,7 @@ public class BankIDNorway extends AMLoginModule {
                     return initMobileClientSession(mobile, dob);
                 }
             }
+            case STATE_AUTHENTICATE_MOBILE:
             case STATE_AUTHENTICATE: {
                 if (debug.messageEnabled()) {
                     debug.message("BankIDNorway::processing STATE_AUTHENTICATION...");
