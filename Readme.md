@@ -54,6 +54,8 @@ cp target/openam-auth-bankid-norway-1.0.0-SNAPSHOT.jar <TOMCAT_WEBAPPS_DIR>/open
 ### Register authentication module
 
 Follow the instructions available in the [OpenAM Developers Guide](https://backstage.forgerock.com/#!/docs/openam/13/dev-guide/chap-customizing#installing-sample-auth-module).
-In the step 2 use:
-- src/main/resources/amBankIDNorwayService.xml file to create service
+
+In step 2 use:
+- `src/main/resources/amBankIDNorwayService.xml` file to create service
 - `org.forgerock.openam.auth.bankid.BankIDNorway` as a class name to register module
+
